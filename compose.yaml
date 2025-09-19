@@ -34,8 +34,7 @@ services:
       - todo-net
 
 volumes:
-  postgres-data:
-    external: true
+  postgres-data: {}
 
 networks:
   todo-net:

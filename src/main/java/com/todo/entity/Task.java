@@ -8,16 +8,31 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Table(name = "task") // explicit table name
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Task {
+
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
 
-    private String title;
+    @Column(name = "task_name", nullable = false, length = 255)
+    private String taskName;
 
+    @Column(name = "task_desc")
+    private String taskDesc;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "is_completed", nullable = false)
     private boolean completed;
 
-    private Instant createdAt;
+    @Column(name = "is_delete", nullable = false)
+    private boolean deleted;
 }
