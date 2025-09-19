@@ -1,11 +1,11 @@
-# 📝 Spring Boot Todo App
+# Spring Boot Todo App
 
 A simple **Todo backend** built with **Spring Boot**, **PostgreSQL**, and **Docker Compose**.  
 It provides REST APIs for creating and managing tasks.
 
 ---
 
-## 📦 Tech Stack
+## Tech Stack
 
 - **Java 17+**
 - **Spring Boot**
@@ -17,9 +17,19 @@ It provides REST APIs for creating and managing tasks.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-### Build docker compose:
+### 1. create external network & volume on first run
+
+```bash
+docker network create todo-net
+```
+
+```bash
+docker volume create postgres-data
+```
+
+### 2. Build with docker compose
 
 ```bash
 docker build -t todo-backend . 
@@ -30,20 +40,38 @@ docker build -t todo-backend .
 docker compose up -d
 ```
 
-### Docker logs:
+Show docker logs
 
 ```bash
 docker compose logs -f todo-backend
 ```
 
-### Hot reload:
+### 3. Run backend locally for hot reload:
+
+#### 1. start database in docker container
+
+```bash
+docker compose up todo-db -d
+```
+
+#### 2. in a new terminal:
 
 ```bash
 .\mvnw spring-boot:run
 ```
 
-### Mock Insert Task:
+### 4. Mock data
+
+Mock Insert Task:
 
 ```bash
-wget http://localhost:8080/api/tasks/mock -Method POST    
+wget http://localhost:8080/api/tasks/mock -Method POST
 ```
+
+Get tasks:
+
+```bash
+wget http://localhost:8080/api/tasks/ -Method GET
+```
+
+or just visit `http://localhost:8080/api/tasks`
