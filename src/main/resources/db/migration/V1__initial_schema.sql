@@ -1,6 +1,6 @@
 -- Optional: let Postgres generate UUIDs (choose one extension if you want DB-side UUIDs)
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";  -- for uuid_generate_v4()
--- CREATE EXTENSION IF NOT EXISTS pgcrypto;     -- for gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";  -- for uuid_generate_v4()
+CREATE EXTENSION IF NOT EXISTS pgcrypto;     -- for gen_random_uuid()
 
 CREATE TABLE task (
                       id           uuid PRIMARY KEY,                          -- or: uuid DEFAULT gen_random_uuid() PRIMARY KEY
