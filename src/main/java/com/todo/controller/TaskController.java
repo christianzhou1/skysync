@@ -91,7 +91,7 @@ public class TaskController {
     }
 
     // Get all tasks (deleted and non deleted)
-    @GetMapping({"", "/"})
+    @GetMapping({"/listalltasks"})
     public List<Task> listAllTasks() {
         return taskService.listAllTasks();
     }

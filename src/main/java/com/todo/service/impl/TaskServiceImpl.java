@@ -35,13 +35,13 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> listAllTasks() {
-        return repo.findAllByDeletedFalseOrderByCreatedAtDesc();
+        return repo.findAll();
     }
 
-    @Override
-    public Page<Task> listAllTasks(int page, int size, String sort) {
-        return repo.findAll(PaginationUtils.buildPageable(page, size, sort));
-    }
+//    @Override
+//    public Page<Task> listAllTasks(int page, int size, String sort) {
+//        return repo.findAll(PaginationUtils.buildPageable(page, size, sort));
+//    }
 
     @Override
     public Task getTaskById(UUID id) {

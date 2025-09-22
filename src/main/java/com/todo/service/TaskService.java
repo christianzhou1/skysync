@@ -26,5 +26,5 @@ public interface TaskService {
     Task insertMock();
 
     List<Task> listAllTasks();
-    Page<Task> listAllTasks(int page, int size, String sort);
+//    Page<Task> listAllTasks(int page, int size, String sort);
 }
