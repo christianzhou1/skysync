@@ -5,6 +5,10 @@ import com.todo.repository.TaskRepository;
 import com.todo.service.TaskService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,11 +21,52 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class TaskServiceImpl implements TaskService {
+    private static final int MAX_PAGE_SIZE = 100;
     private final TaskRepository repo;
 
     @Override
     public List<Task> listTasks() {
         return repo.findAllByDeletedFalseOrderByCreatedAtDesc();
+    }
+
+    // paginated tasks
+    @Override
+    public Page<Task> listTasks(int page, int size, String sort) {
+        // page index - non negative
+        int p = Math.max(0, page);
+
+        // page size - at least 1 and at most MAX_PAGE_SIZE
+        int s = Math.min(Math.max(1, size), MAX_PAGE_SIZE);
+
+        // default sort field and direction
+        String field = "createdAt";
+        Sort.Direction dir = Sort.Direction.DESC;
+
+        // Parse the 'sort' parameter if provided, e.g. "taskName, asc"
+        if (sort != null && !sort.isBlank()) {
+            String[] parts = sort.split(",", 2);
+
+            // first part = field name e.g. "taskName", if blank -> default "createdAt"
+            field = parts[0].trim().isEmpty() ? field : parts[0].trim();
+
+            // second part = direction - asc or desc
+            if (parts.length == 2 && parts[1] != null) {
+                dir = parts[1].trim().equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            }
+        }
+
+        // build the sort object
+        Sort springSort = Sort.by(
+                new Sort.Order(dir, field),
+                // secondary sort by id to ensure stable ordering (when duplicate values)
+                new Sort.Order(Sort.Direction.ASC, "id")
+        );
+
+        // build pageable object with sanitized values
+        Pageable pageable = PageRequest.of(p, s, springSort);
+
+        // query the repository for a paginated list of non deleted tasks
+        return repo.findAllByDeletedFalse((Pageable) pageable);
     }
 
     @Override

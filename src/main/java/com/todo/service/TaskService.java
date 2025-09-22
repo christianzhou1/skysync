@@ -1,6 +1,7 @@
 package com.todo.service;
 
 import com.todo.entity.Task;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +15,8 @@ public interface TaskService {
     Task getTaskById(UUID id);
 
     List<Task> listTasks();
+
+    Page<Task> listTasks(int page, int size, String sort);
 
     void deleteTask(UUID id);
 
