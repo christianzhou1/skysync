@@ -1,4 +1,13 @@
+app:
+  storage:
+    root-dir: ./uploads
+
 spring:
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+
   datasource:
     url: jdbc:postgresql://localhost:5433/todo_db
     username: user-todo

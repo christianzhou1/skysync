@@ -12,4 +12,5 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findAllByIsDeletedFalseOrderByCreatedAtDesc();
     Optional<Task> findByIdAndIsDeletedFalse(UUID id);
     Page<Task> findAllByIsDeletedFalse(org.springframework.data.domain.Pageable pageable);
+    List<Task> findByIsDeletedFalse();
 }

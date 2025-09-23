@@ -1,5 +1,6 @@
 package com.todo.service;
 
+import com.todo.api.dto.TaskDetailInfo;
 import com.todo.entity.Task;
 import org.springframework.data.domain.Page;
 
@@ -7,6 +8,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TaskService {
+
+
+    TaskDetailInfo getTaskDetail(UUID id);
 
     // CRUD operations
 
@@ -27,4 +31,7 @@ public interface TaskService {
 
     List<Task> listAllTasks();
 //    Page<Task> listAllTasks(int page, int size, String sort);
+
+    List<TaskDetailInfo> listAllTaskDetails();
+    // Page<TaskDetailInfo> listAllTaskDetails(int page, int size, String sort);
 }

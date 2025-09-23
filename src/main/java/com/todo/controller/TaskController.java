@@ -1,5 +1,6 @@
 package com.todo.controller;
 
+import com.todo.api.dto.TaskDetailInfo;
 import com.todo.entity.Task;
 import com.todo.service.TaskService;
 import com.todo.util.PaginationUtils;
@@ -26,6 +27,11 @@ public class TaskController {
 
     public final TaskService taskService;
 
+    @GetMapping("/id/{id}/detail")
+    public ResponseEntity<TaskDetailInfo> getTaskDetail(@PathVariable UUID id) {
+        return ResponseEntity.ok(taskService.getTaskDetail(id));
+    }
+
     // Paged LIST
     @GetMapping
     public ResponseEntity<List<Task>> listTasks(
@@ -42,7 +48,7 @@ public class TaskController {
     }
 
     // GET by id (404 if deleted or not found)
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public Task getTaskById(@PathVariable UUID id) {
         return taskService.getTaskById(id);
     }
@@ -53,7 +59,7 @@ public class TaskController {
         Task saved = taskService.createTask(req.getTitle(), req.getDescription());
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
+                .path("/id/{id}")
                 .buildAndExpand(saved.getId())
                 .toUri();
 
@@ -61,20 +67,20 @@ public class TaskController {
     }
 
     // UPDATE (idempotent PUT; only apply non-null fields)
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public Task updateTask(@PathVariable UUID id, @Validated @RequestBody UpdateTaskRequest req) {
         return taskService.updateTask(id, req.getTitle(), req.getDescription(), req.getIsCompleted());
     }
 
     // PATCH completion: /tasks/{id}/complete?value=true|false
-    @PatchMapping("/{id}/complete")
+    @PatchMapping("/id/{id}/complete")
     public Task setCompleted(@PathVariable UUID id, @RequestParam("value") boolean value) {
         return taskService.setCompleted(id, value);
     }
 
 
     // SOFT DELETE
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable UUID id) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
@@ -90,5 +96,10 @@ public class TaskController {
     @GetMapping({"/listalltasks"})
     public List<Task> listAllTasks() {
         return taskService.listAllTasks();
+    }
+
+    @GetMapping("/details")
+    public ResponseEntity<List<TaskDetailInfo>> listAllTaskDetails() {
+        return ResponseEntity.ok(taskService.listAllTaskDetails());
     }
 }
