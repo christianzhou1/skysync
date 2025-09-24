@@ -1,8 +1,17 @@
 app:
   storage:
-    root-dir: ./uploads
+    type: s3
+    s3:
+      bucket: todo-bucket123
+      prefix: attachments
+#    root-dir: ./uploads
 
 spring:
+  cloud:
+    aws:
+      region:
+        static: us-east-2
+
   servlet:
     multipart:
       max-file-size: 25MB
