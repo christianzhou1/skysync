@@ -42,8 +42,6 @@ spring:
     schemas: public
     default-schema: public
 
-
-
 logging:
   level:
     org.hibernate.SQL:
@@ -63,3 +61,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+# JWT Configuration
+jwt:
+  secret: mySecretKey123456789012345678901234567890
+  expiration: 86400000 # 24 hours in milliseconds

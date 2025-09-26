@@ -28,7 +28,7 @@ public class UserController {
     private final UserService userService;
     private final TaskService taskService;
 
-    @GetMapping
+    @GetMapping("/get-all-users")
     public ResponseEntity<List<UserSummary>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         List<UserSummary> userSummaries = users.stream()
