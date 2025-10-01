@@ -66,32 +66,51 @@ const FileUpload: React.FC<FileUploadProps> = ({ taskId, onUploadSuccess }) => {
   };
 
   return (
-    <div className="file-upload">
-      <h3>{taskId ? "Upload File for Task" : "Upload File"}</h3>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h3 className="text-lg font-semibold text-slate-800 mb-4">
+        {taskId ? "Upload File for Task" : "Upload File"}
+      </h3>
 
-      <div className="upload-controls">
+      <div className="space-y-4">
         <input
           type="file"
           onChange={handleFileSelect}
           disabled={uploading}
           accept="*/*"
+          className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
         />
 
         {selectedFile && (
-          <div className="file-info">
-            <p>Selected: {selectedFile.name}</p>
-            <p>Size: {(selectedFile.size / 1024).toFixed(2)} KB</p>
+          <div className="bg-gray-50 p-3 rounded">
+            <p className="text-sm text-gray-700">
+              Selected: {selectedFile.name}
+            </p>
+            <p className="text-sm text-gray-500">
+              Size: {(selectedFile.size / 1024).toFixed(2)} KB
+            </p>
           </div>
         )}
 
-        <button onClick={handleUpload} disabled={!selectedFile || uploading}>
+        <button
+          onClick={handleUpload}
+          disabled={!selectedFile || uploading}
+          className="w-full bg-blue-600 text-white border-0 p-3 rounded text-base cursor-pointer hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
           {uploading ? "Uploading..." : "Upload"}
         </button>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="bg-red-600 text-white p-3 rounded mt-4 text-center">
+          {error}
+        </div>
+      )}
 
-      {success && <div className="success-message">{success}</div>}
+      {success && (
+        <div className="bg-green-600 text-white p-3 rounded mt-4 text-center">
+          {success}
+        </div>
+      )}
     </div>
   );
 };

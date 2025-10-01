@@ -17,9 +17,6 @@ class AuthService {
     try {
       const response = await authApi.login({ usernameOrEmail, password });
 
-      console.log("Login response:", response);
-      console.log("Response data:", response.data);
-
       // Store token and user info in localStorage
       if (response.data?.token) {
         localStorage.setItem("authToken", response.data.token);

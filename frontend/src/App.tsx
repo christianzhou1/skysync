@@ -30,24 +30,27 @@ function App() {
 
   if (loading) {
     return (
-      <div className="app">
-        <div className="loading">Loading...</div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="text-center py-8 text-lg text-gray-600">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>Todo App</h1>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-slate-800 text-white px-8 py-4 flex justify-between items-center shadow-md">
+        <h1 className="m-0 text-2xl">Todo App</h1>
         {isAuthenticated && (
-          <button onClick={handleLogout} className="logout-btn">
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-red-700"
+          >
             Logout
           </button>
         )}
       </header>
 
-      <main className="app-main">
+      <main className="max-w-4xl mx-auto my-8 px-4">
         {!isAuthenticated ? (
           <LoginForm onLoginSuccess={handleLoginSuccess} />
         ) : (

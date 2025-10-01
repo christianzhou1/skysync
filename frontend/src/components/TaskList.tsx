@@ -92,53 +92,73 @@ const TaskList: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <div className="loading">Loading tasks...</div>;
+    return (
+      <div className="text-center py-8 text-lg text-gray-600">
+        Loading tasks...
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="error">
+      <div className="bg-red-600 text-white p-4 rounded text-center">
         <p>Error: {error}</p>
-        <button onClick={fetchTasks}>Retry</button>
+        <button
+          onClick={fetchTasks}
+          className="bg-white text-red-600 border-0 px-4 py-2 rounded cursor-pointer mt-2"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="task-list">
-      <h2>My Tasks</h2>
-      <button onClick={fetchTasks}>Refresh</button>
+    <div className="bg-white p-8 rounded-lg shadow-lg">
+      <h2 className="mt-0 text-slate-800 flex justify-between items-center">
+        My Tasks
+        <button
+          onClick={fetchTasks}
+          className="bg-blue-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-blue-700"
+        >
+          Refresh
+        </button>
+      </h2>
 
       {tasks.length === 0 ? (
-        <p>No tasks found. Create your first task!</p>
+        <p className="text-gray-600">No tasks found. Create your first task!</p>
       ) : (
-        <ul>
+        <ul className="list-none p-0 my-4">
           {tasks.map((task) => (
             <li
               key={task.id}
-              className={`task-item ${task.isCompleted ? "completed" : ""}`}
+              className={`border border-gray-200 rounded p-4 mb-4 flex justify-between items-start ${
+                task.isCompleted ? "bg-gray-50 opacity-70" : ""
+              }`}
             >
-              <div className="task-content">
-                <h3>{task.title}</h3>
-                <p>{task.description}</p>
-                <small>
+              <div className="flex-1">
+                <h3 className="m-0 mb-2 text-slate-800">{task.title}</h3>
+                <p className="m-0 mb-2 text-gray-600">{task.description}</p>
+                <small className="text-gray-500 text-xs">
                   Created: {new Date(task.createdAt).toLocaleDateString()}
                 </small>
               </div>
-              <div className="task-actions">
+              <div className="flex gap-2 flex-shrink-0">
                 <button
                   onClick={() =>
                     toggleTaskCompletion(task.id, task.isCompleted)
                   }
-                  className={
-                    task.isCompleted ? "uncomplete-btn" : "complete-btn"
-                  }
+                  className={`text-white border-0 px-4 py-2 rounded cursor-pointer text-sm ${
+                    task.isCompleted
+                      ? "bg-yellow-600 hover:bg-yellow-700"
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
                 >
                   {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
                 </button>
                 <button
                   onClick={() => deleteTask(task.id)}
-                  className="delete-btn"
+                  className="bg-red-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-red-700"
                 >
                   Delete
                 </button>

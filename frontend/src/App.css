@@ -1,232 +1,114 @@
+/* Custom styles that complement Tailwind */
 .app {
-  min-height: 100vh;
-  background-color: #f5f5f5;
+  @apply min-h-screen bg-gray-50;
 }
 
 .app-header {
-  background-color: #2c3e50;
-  color: white;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  @apply bg-slate-800 text-white px-8 py-4 flex justify-between items-center shadow-md;
 }
 
 .app-header h1 {
-  margin: 0;
-  font-size: 1.5rem;
+  @apply m-0 text-2xl;
 }
 
 .logout-btn {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.logout-btn:hover {
-  background-color: #c0392b;
+  @apply bg-red-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-red-700;
 }
 
 .app-main {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  @apply max-w-4xl mx-auto my-8 px-4;
 }
 
 .loading {
-  text-align: center;
-  padding: 2rem;
-  font-size: 1.1rem;
-  color: #666;
+  @apply text-center py-8 text-lg text-gray-600;
 }
 
 /* Login Form Styles */
 .login-form {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  margin: 0 auto;
+  @apply bg-white p-8 rounded-lg shadow-lg max-w-md mx-auto;
 }
 
 .login-form h2 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #2c3e50;
+  @apply text-center mb-6 text-slate-800;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  @apply mb-4;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #333;
+  @apply block mb-2 font-medium text-gray-700;
 }
 
 .form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  @apply w-full p-3 border border-gray-300 rounded text-base box-border focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200;
 }
 
 .login-form button {
-  width: 100%;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 1rem;
-}
-
-.login-form button:hover:not(:disabled) {
-  background-color: #2980b9;
-}
-
-.login-form button:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
+  @apply w-full bg-blue-600 text-white border-0 p-3 rounded text-base cursor-pointer mt-4 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed;
 }
 
 .error-message {
-  background-color: #e74c3c;
-  color: white;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-  text-align: center;
+  @apply bg-red-600 text-white p-3 rounded mt-4 text-center;
 }
 
 /* Task List Styles */
 .task-list {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  @apply bg-white p-8 rounded-lg shadow-lg;
 }
 
 .task-list h2 {
-  margin-top: 0;
-  color: #2c3e50;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  @apply mt-0 text-slate-800 flex justify-between items-center;
 }
 
 .task-list button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.task-list button:hover {
-  background-color: #2980b9;
+  @apply bg-blue-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-blue-700;
 }
 
 .task-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 1rem 0;
+  @apply list-none p-0 my-4;
 }
 
 .task-item {
-  border: 1px solid #eee;
-  border-radius: 4px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  @apply border border-gray-200 rounded p-4 mb-4 flex justify-between items-start;
 }
 
 .task-item.completed {
-  background-color: #f8f9fa;
-  opacity: 0.7;
+  @apply bg-gray-50 opacity-70;
 }
 
 .task-content h3 {
-  margin: 0 0 0.5rem 0;
-  color: #2c3e50;
+  @apply m-0 mb-2 text-slate-800;
 }
 
 .task-content p {
-  margin: 0 0 0.5rem 0;
-  color: #666;
+  @apply m-0 mb-2 text-gray-600;
 }
 
 .task-content small {
-  color: #999;
-  font-size: 0.8rem;
+  @apply text-gray-500 text-xs;
 }
 
 .task-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
+  @apply flex gap-2 flex-shrink-0;
 }
 
 .complete-btn {
-  background-color: #27ae60 !important;
-}
-
-.complete-btn:hover {
-  background-color: #229954 !important;
+  @apply bg-green-600 hover:bg-green-700;
 }
 
 .uncomplete-btn {
-  background-color: #f39c12 !important;
-}
-
-.uncomplete-btn:hover {
-  background-color: #e67e22 !important;
+  @apply bg-yellow-600 hover:bg-yellow-700;
 }
 
 .delete-btn {
-  background-color: #e74c3c !important;
-}
-
-.delete-btn:hover {
-  background-color: #c0392b !important;
+  @apply bg-red-600 hover:bg-red-700;
 }
 
 .error {
-  background-color: #e74c3c;
-  color: white;
-  padding: 1rem;
-  border-radius: 4px;
-  text-align: center;
+  @apply bg-red-600 text-white p-4 rounded text-center;
 }
 
 .error button {
-  background-color: white;
-  color: #e74c3c;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 0.5rem;
+  @apply bg-white text-red-600 border-0 px-4 py-2 rounded cursor-pointer mt-2;
 }

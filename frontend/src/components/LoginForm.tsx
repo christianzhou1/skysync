@@ -45,11 +45,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="login-form">
-      <h2>Login</h2>
+    <div className="bg-white p-8 rounded-lg shadow-lg max-w-md mx-auto">
+      <h2 className="text-center mb-6 text-slate-800">Login</h2>
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="usernameOrEmail">Username or Email:</label>
+        <div className="mb-4">
+          <label
+            htmlFor="usernameOrEmail"
+            className="block mb-2 font-medium text-gray-700"
+          >
+            Username or Email:
+          </label>
           <input
             type="text"
             id="usernameOrEmail"
@@ -58,11 +63,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             onChange={handleInputChange}
             required
             disabled={loading}
+            className="w-full p-3 border border-gray-300 rounded text-base box-border focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="password">Password:</label>
+        <div className="mb-4">
+          <label
+            htmlFor="password"
+            className="block mb-2 font-medium text-gray-700"
+          >
+            Password:
+          </label>
           <input
             type="password"
             id="password"
@@ -71,12 +82,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             onChange={handleInputChange}
             required
             disabled={loading}
+            className="w-full p-3 border border-gray-300 rounded text-base box-border focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="bg-red-600 text-white p-3 rounded mt-4 text-center">
+            {error}
+          </div>
+        )}
 
-        <button type="submit" disabled={loading}>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white border-0 p-3 rounded text-base cursor-pointer mt-4 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>
