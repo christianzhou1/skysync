@@ -5,7 +5,7 @@ interface Task {
   id: string;
   title: string;
   description: string;
-  isCompleted: boolean;
+  completed: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,7 +21,6 @@ const TaskList: React.FC = () => {
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -66,7 +65,7 @@ const TaskList: React.FC = () => {
         // Update local state
         setTasks(
           tasks.map((task) =>
-            task.id === taskId ? { ...task, isCompleted: !currentStatus } : task
+            task.id === taskId ? { ...task, completed: !currentStatus } : task
           )
         );
       } else {
@@ -76,7 +75,6 @@ const TaskList: React.FC = () => {
       setError("Failed to update task");
     }
   };
-
 
   const createTask = async () => {
     if (!newTaskTitle.trim()) {
@@ -101,14 +99,13 @@ const TaskList: React.FC = () => {
 
       if (response.code === 200 && response.data) {
         //add new task to existing task array
-        setTasks(prevTasks => [response.data, ...prevTasks]);
+        setTasks((prevTasks) => [response.data, ...prevTasks]);
 
         //reset form
         setNewTaskTitle("");
         setNewTaskDescription("");
         setNewTaskDueDate("");
         setShowCreateForm(false);
-
       } else {
         setError(response.msg);
       }
@@ -117,8 +114,7 @@ const TaskList: React.FC = () => {
     } finally {
       setIsCreating(false);
     }
-  }
-
+  };
 
   const deleteTask = async (taskId: string) => {
     try {
@@ -187,7 +183,9 @@ const TaskList: React.FC = () => {
 
       {showCreateForm && (
         <div className="flex-col gap-2">
-          <h2 className="mt-0 text-slate-800 flex justify-between items-center">Create New Task</h2>
+          <h2 className="mt-0 text-slate-800 flex justify-between items-center">
+            Create New Task
+          </h2>
           <div className="flex-col gap-2 border border-gray-200 rounded p-4 mb-4 flex justify-between">
             <input
               type="text"
@@ -225,15 +223,8 @@ const TaskList: React.FC = () => {
               >
                 Cancel
               </button>
-
             </div>
-
-
           </div>
-
-
-
-
         </div>
       )}
 
@@ -245,28 +236,30 @@ const TaskList: React.FC = () => {
             <li
               key={task.id}
               className={`border border-gray-200 rounded p-4 mb-4 flex justify-between items-start ${
-                task.isCompleted ? "bg-gray-50 opacity-70" : ""
+                task.completed ? "bg-gray-50 opacity-70" : ""
               }`}
             >
               <div className="flex-1">
                 <h3 className="m-0 mb-2 text-slate-800">{task.title}</h3>
                 <p className="m-0 mb-2 text-gray-600">{task.description}</p>
                 <small className="text-gray-500 text-xs">
-                  Created: {new Date(task.createdAt).toLocaleDateString()}
+                  Created: {new Date(task.createdAt).toLocaleDateString()} {new Date(task.createdAt).toLocaleTimeString()}
+                </small>
+
+                <small className="text-gray-500 text-xs">
+                  ; Updated: {new Date(task.updatedAt).toLocaleDateString()} {new Date(task.updatedAt).toLocaleTimeString()}
                 </small>
               </div>
               <div className="flex gap-2 flex-shrink-0">
                 <button
-                  onClick={() =>
-                    toggleTaskCompletion(task.id, task.isCompleted)
-                  }
+                  onClick={() => toggleTaskCompletion(task.id, task.completed)}
                   className={`text-white border-0 px-4 py-2 rounded cursor-pointer text-sm ${
-                    task.isCompleted
+                    task.completed
                       ? "bg-yellow-600 hover:bg-yellow-700"
                       : "bg-green-600 hover:bg-green-700"
                   }`}
                 >
-                  {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
+                  {task.completed ? "Mark Incomplete" : "Mark Complete"}
                 </button>
                 <button
                   onClick={() => deleteTask(task.id)}

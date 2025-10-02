@@ -41,6 +41,9 @@ spring:
     clean-disabled: true
     schemas: public
     default-schema: public
+    url: jdbc:postgresql://localhost:5433/todo_db
+    user: user-todo
+    password: todo123
 
 logging:
   level:
