@@ -134,11 +134,13 @@ class AttachmentService {
     userId: string
   ): Promise<ApiResponse<Blob>> {
     try {
-      const response = await attachmentApi.download(attachmentId, userId);
+      const response = await attachmentApi.download(attachmentId, userId, {
+        responseType: "blob",
+      });
       return {
         code: 200,
         msg: "File downloaded successfully",
-        data: response.data,
+        data: response.data as unknown as Blob,
       };
     } catch (error: any) {
       console.error("Download file error:", error);
@@ -158,7 +160,7 @@ class AttachmentService {
     userId: string
   ): Promise<ApiResponse> {
     try {
-      await attachmentApi.delete(attachmentId, userId);
+      await attachmentApi._delete(attachmentId, userId);
       return {
         code: 200,
         msg: "Attachment deleted successfully",

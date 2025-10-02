@@ -4,6 +4,8 @@ import {
   TaskManagementApi,
   UserManagementApi,
   FileAttachmentsApi,
+  type AuthResponse,
+  type LoginRequest,
 } from "../generated/api";
 import { envConfig } from "../config/env";
 
@@ -15,20 +17,13 @@ const configuration = new Configuration({
     return localStorage.getItem("authToken") || "";
   },
   // Add custom headers for X-User-Id
-  middleware: [
-    {
-      pre: (context) => {
-        const userId = localStorage.getItem("userId");
-        if (userId) {
-          context.init.headers = {
-            ...context.init.headers,
-            "X-User-Id": userId,
-          };
-        }
-        return Promise.resolve(context);
+  baseOptions: {
+    headers: {
+      get "X-User-Id"() {
+        return localStorage.getItem("userId") || "";
       },
     },
-  ],
+  },
 });
 
 // Create API instances
@@ -37,4 +32,5 @@ export const taskApi = new TaskManagementApi(configuration);
 export const userApi = new UserManagementApi(configuration);
 export const attachmentApi = new FileAttachmentsApi(configuration);
 
-// Export the API instances directly - they already have the correct methods
+// Export the API instances and types
+export { type AuthResponse, type LoginRequest };

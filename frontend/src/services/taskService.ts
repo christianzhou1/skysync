@@ -55,6 +55,27 @@ class TaskService {
   }
 
   /**
+   * List tasks (non deleted)
+   */
+  async listTasks(userId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await taskApi.listTasks(userId);
+      return {
+        code: 200,
+        msg: "Success",
+        data: response.data
+      };
+    } catch (error: any) {
+      console.error("List tasks error:", error);
+
+      return {
+        code: error.response?.status || 500,
+        msg: error.response?.data?.msg || "Failed to list tasks.",
+      }
+    }
+  }
+
+  /**
    * Create new task
    */
   async createTask(

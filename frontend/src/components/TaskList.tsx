@@ -15,6 +15,14 @@ const TaskList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // state variables for create task
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [newTaskDueDate, setNewTaskDueDate] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+
+
   const fetchTasks = async () => {
     setLoading(true);
     setError(null);
@@ -26,7 +34,7 @@ const TaskList: React.FC = () => {
         return;
       }
 
-      const response = await taskService.getAllTasks(userId);
+      const response = await taskService.listTasks(userId);
 
       if (response.code === 200 && response.data) {
         setTasks(response.data);
@@ -68,6 +76,49 @@ const TaskList: React.FC = () => {
       setError("Failed to update task");
     }
   };
+
+
+  const createTask = async () => {
+    if (!newTaskTitle.trim()) {
+      setError("Task title is required");
+      return;
+    }
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      const userId = authService.getUserId();
+      if (!userId) {
+        setError("User not authenticated");
+        return;
+      }
+
+      const response = await taskService.createTask(
+        newTaskTitle.trim(),
+        newTaskDescription.trim(),
+        userId
+      );
+
+      if (response.code === 200 && response.data) {
+        //add new task to existing task array
+        setTasks(prevTasks => [response.data, ...prevTasks]);
+
+        //reset form
+        setNewTaskTitle("");
+        setNewTaskDescription("");
+        setNewTaskDueDate("");
+        setShowCreateForm(false);
+
+      } else {
+        setError(response.msg);
+      }
+    } catch (err) {
+      setError("Failed to create task");
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
 
   const deleteTask = async (taskId: string) => {
     try {
@@ -117,13 +168,74 @@ const TaskList: React.FC = () => {
     <div className="bg-white p-8 rounded-lg shadow-lg">
       <h2 className="mt-0 text-slate-800 flex justify-between items-center">
         My Tasks
-        <button
-          onClick={fetchTasks}
-          className="bg-blue-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-blue-700"
-        >
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="bg-green-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-green-700"
+          >
+            {showCreateForm ? "Cancel" : "Create Task"}
+          </button>
+
+          <button
+            onClick={fetchTasks}
+            className="bg-blue-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-blue-700"
+          >
+            Refresh
+          </button>
+        </div>
       </h2>
+
+      {showCreateForm && (
+        <div className="flex-col gap-2">
+          <h2 className="mt-0 text-slate-800 flex justify-between items-center">Create New Task</h2>
+          <div className="flex-col gap-2 border border-gray-200 rounded p-4 mb-4 flex justify-between">
+            <input
+              type="text"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter task title"
+            />
+
+            <input
+              type="text"
+              value={newTaskDescription}
+              onChange={(e) => setNewTaskDescription(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter task description (optional)"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={createTask}
+                disabled={isCreating || !newTaskTitle.trim()}
+                className="bg-green-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-green-700"
+              >
+                {isCreating ? "Creating..." : "Create Task"}
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setNewTaskTitle("");
+                  setNewTaskDescription("");
+                  setNewTaskDueDate("");
+                }}
+                className="bg-red-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-red-700"
+              >
+                Cancel
+              </button>
+
+            </div>
+
+
+          </div>
+
+
+
+
+        </div>
+      )}
 
       {tasks.length === 0 ? (
         <p className="text-gray-600">No tasks found. Create your first task!</p>
