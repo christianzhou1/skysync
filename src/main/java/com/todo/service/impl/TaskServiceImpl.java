@@ -170,9 +170,9 @@ public class TaskServiceImpl implements TaskService {
 
         Task savedTask = repo.save(t);
 
-        // Refresh the parent task to update its subtasks collection
+        // Manually add to parent's subtasks collection and clear the collection to force reload
         if (parentTask != null) {
-            entityManager.refresh(parentTask);
+            parentTask.getSubtasks().add(savedTask);
         }
         
         return savedTask;

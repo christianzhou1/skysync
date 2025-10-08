@@ -130,7 +130,20 @@ const TaskList: React.FC = () => {
 
       if (response.code === 200 && response.data) {
         //add new task to existing task array
-        setTasks((prevTasks) => [response.data, ...prevTasks]);
+        setTasks((prevTasks) => {
+          const newTasks = [response.data, ...prevTasks];
+
+          // If this is a subtask, increment parent's subtask count
+          if (parentTaskId) {
+            return newTasks.map(task =>
+              task.id === parentTaskId
+                ? { ...task, subtaskCount: (task.subtaskCount || 0) + 1 }
+                : task
+            );
+          }
+
+          return newTasks;
+        });
 
         //reset form
         setNewTaskTitle("");
@@ -309,8 +322,10 @@ const TaskList: React.FC = () => {
                       )}
                       {} subtask count: {task.subtaskCount}
                       {task.subtaskCount != null && task.subtaskCount > 0 && (
-                          <Chip
-                          label={`${task.subtaskCount} subtask${task.subtaskCount > 1 ? 's' : ''}`}
+                        <Chip
+                          label={`${task.subtaskCount} subtask${
+                            task.subtaskCount > 1 ? "s" : ""
+                          }`}
                           color="info"
                           size="small"
                           variant="outlined"
