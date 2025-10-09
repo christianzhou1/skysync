@@ -17,6 +17,87 @@ import { AddTask, Refresh } from "@mui/icons-material";
 import { Tree } from "react-arborist";
 import TaskItem from "./TaskItem";
 
+// Reordering utilities
+interface ReorderPreferences {
+  [parentTaskId: string]: string[]; // parentTaskId -> ordered task IDs
+}
+
+const REORDER_STORAGE_KEY = "taskReorderPreferences";
+
+const getReorderPreferences = (): ReorderPreferences => {
+  try {
+    const stored = localStorage.getItem(REORDER_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveReorderPreferences = (preferences: ReorderPreferences) => {
+  try {
+    localStorage.setItem(REORDER_STORAGE_KEY, JSON.stringify(preferences));
+  } catch (error) {
+    console.error("Failed to save reorder preferences:", error);
+  }
+};
+
+const clearReorderPreferences = () => {
+  try {
+    localStorage.removeItem(REORDER_STORAGE_KEY);
+  } catch (error) {
+    console.error("Failed to clear reorder preferences:", error);
+  }
+};
+
+const applyUserReordering = (tasks: Task[]): Task[] => {
+  const preferences = getReorderPreferences();
+  const reorderedTasks: Task[] = [];
+
+  // Group tasks by parent
+  const tasksByParent = new Map<string, Task[]>();
+  tasks.forEach((task) => {
+    const parentKey = task.parentTaskId || "root";
+    if (!tasksByParent.has(parentKey)) {
+      tasksByParent.set(parentKey, []);
+    }
+    tasksByParent.get(parentKey)!.push(task);
+  });
+
+  // Apply reordering for each parent group
+  tasksByParent.forEach((parentTasks, parentKey) => {
+    const userOrder = preferences[parentKey];
+
+    if (userOrder && userOrder.length > 0) {
+      // Apply user-defined order
+      const orderedTasks: Task[] = [];
+      const taskMap = new Map(parentTasks.map((task) => [task.id, task]));
+
+      // Add tasks in user-defined order
+      userOrder.forEach((taskId) => {
+        const task = taskMap.get(taskId);
+        if (task) {
+          orderedTasks.push(task);
+          taskMap.delete(taskId);
+        }
+      });
+
+      // Add any remaining tasks (new tasks not in user preferences)
+      taskMap.forEach((task) => orderedTasks.push(task));
+
+      reorderedTasks.push(...orderedTasks);
+    } else {
+      // Use database order (display_order)
+      reorderedTasks.push(
+        ...parentTasks.sort(
+          (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)
+        )
+      );
+    }
+  });
+
+  return reorderedTasks;
+};
+
 interface Task {
   id: string;
   title: string;
@@ -26,6 +107,7 @@ interface Task {
   updatedAt: string;
   parentTaskId?: string;
   subtaskCount?: number;
+  displayOrder?: number;
 }
 
 interface TreeNode {
@@ -237,12 +319,73 @@ const TaskList: React.FC = () => {
     setNewTaskDueDate("");
   };
 
+  const handleTaskMove = ({ dragNodes, parentNode, index }: any) => {
+    const draggedTask = dragNodes[0];
+
+    if (!draggedTask) return;
+
+    // Only allow reordering within the same parent (no hierarchy changes)
+    const originalParentId = draggedTask.data.task.parentTaskId;
+    const newParentId = parentNode?.data?.task?.id || null;
+
+    // Check if targetParentId is actually a sibling (has the same parent as draggedTask)
+    let actualNewParentId = newParentId;
+    if (newParentId && newParentId !== originalParentId) {
+      const targetTask = tasks.find((t) => t.id === newParentId);
+      if (targetTask && targetTask.parentTaskId === originalParentId) {
+        // This is a sibling, so the actual parent is the same as draggedTask's parent
+        actualNewParentId = originalParentId;
+      }
+    }
+
+    if (originalParentId !== actualNewParentId) {
+      return;
+    }
+
+    try {
+      // Get current reorder preferences
+      const preferences = getReorderPreferences();
+      const parentKey = originalParentId || "root";
+
+      // Get all tasks in the same parent group
+      const siblingTasks = tasks.filter((task) => {
+        const taskParentId = task.parentTaskId || "root";
+        return taskParentId === parentKey;
+      });
+
+      // Create new order by moving the dragged task to the new position
+      const draggedTaskId = draggedTask.data.task.id;
+      const newOrder = [...siblingTasks.map((t) => t.id)];
+
+      // Remove dragged task from its current position
+      const currentIndex = newOrder.indexOf(draggedTaskId);
+      if (currentIndex !== -1) {
+        newOrder.splice(currentIndex, 1);
+      }
+
+      // Insert at new position
+      newOrder.splice(index, 0, draggedTaskId);
+
+      // Save the new order
+      preferences[parentKey] = newOrder;
+      saveReorderPreferences(preferences);
+
+      // Trigger re-render by updating tasks state
+      setTasks([...tasks]);
+    } catch (err) {
+      console.error("Error reordering task:", err);
+      setError("Failed to reorder task");
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
   }, []);
 
   useEffect(() => {
-    const tree = buildTreeData(tasks);
+    // Apply user reordering before building tree
+    const reorderedTasks = applyUserReordering(tasks);
+    const tree = buildTreeData(reorderedTasks);
     setTreeData(tree);
   }, [tasks]);
 
@@ -301,6 +444,16 @@ const TaskList: React.FC = () => {
           >
             Refresh
           </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => {
+              clearReorderPreferences();
+              setTasks([...tasks]); // Trigger re-render
+            }}
+          >
+            Reset Order
+          </Button>
         </Box>
       </Box>
 
@@ -320,10 +473,54 @@ const TaskList: React.FC = () => {
           width="100%"
           height={700}
           indent={48}
-          rowHeight={80}
+          rowHeight={90}
+          onMove={handleTaskMove}
+          disableDrop={({ parentNode, dragNodes }) => {
+            // Only allow drops within the same parent (no hierarchy changes)
+            const draggedTask = dragNodes[0];
+
+            if (!draggedTask) {
+              return true;
+            }
+
+            const originalParentId = draggedTask.data.task.parentTaskId;
+            const targetParentId = parentNode?.data?.task?.id || null;
+
+            // Check if targetParentId is actually a sibling (has the same parent as draggedTask)
+            let actualTargetParentId = targetParentId;
+            if (targetParentId && targetParentId !== originalParentId) {
+              const targetTask = tasks.find((t) => t.id === targetParentId);
+              if (targetTask && targetTask.parentTaskId === originalParentId) {
+                // This is a sibling, so the actual parent is the same as draggedTask's parent
+                actualTargetParentId = originalParentId;
+              }
+            }
+
+            // Disable drop if trying to move to a different parent
+            return originalParentId !== actualTargetParentId;
+          }}
+          dragPreviewRender={(props) => (
+            <div
+              style={{
+                background: "rgba(0, 0, 0, 0.1)",
+                border: "2px dashed #ccc",
+                padding: "8px",
+                borderRadius: "4px",
+              }}
+            >
+              {props.dragNodes[0]?.data?.name}
+            </div>
+          )}
         >
           {({ node, style, dragHandle }) => (
-            <div style={style} ref={dragHandle}>
+            <div
+              style={{
+                ...style,
+                cursor: "grab",
+                userSelect: "none",
+              }}
+              ref={dragHandle}
+            >
               <TaskItem
                 task={node.data.task}
                 index={0} // Tree handles positioning, so index is not critical

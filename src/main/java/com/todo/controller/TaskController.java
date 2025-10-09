@@ -308,4 +308,25 @@ public class TaskController {
                 .map(com.todo.api.mapper.TaskMapper::toTaskSummary)
                 .toList();
     }
+
+    @PatchMapping("/{id}/reorder")
+    @Operation(
+        summary = "Reorder task",
+        description = "Change the display order of a task within its hierarchy level"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Task reordered successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid display order"),
+        @ApiResponse(responseCode = "404", description = "Task not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public ResponseEntity<Task> reorderTask(
+        @PathVariable UUID id,
+        @RequestParam Integer newDisplayOrder,
+        @RequestHeader("X-User-Id") UUID userId
+    ) {
+        userService.getUserById(userId); // Validate user exists
+        Task reorderedTask = taskService.reorderTask(id, newDisplayOrder, userId);
+        return ResponseEntity.ok(reorderedTask);
+    }
 }

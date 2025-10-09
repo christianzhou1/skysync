@@ -98,7 +98,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> listTasks(UUID userId) {
-        return repo.findByUserIdAndIsDeletedFalseOrderByCreatedAtDescWithSubtasks(userId);
+        return repo.findByUserIdAndIsDeletedFalseOrderByDisplayOrderAscWithSubtasks(userId);
     }
 
     // paginated tasks
@@ -158,11 +158,30 @@ public class TaskServiceImpl implements TaskService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent task not found"));
         }
 
+        // Calculate display_order: 1 for root tasks (push to top), max+1 for subtasks (append to bottom)
+        Integer displayOrder;
+        if (parentTask == null) {
+            // Root task: push to top (display_order = 1)
+            displayOrder = 1;
+            // Shift existing root tasks down
+            List<Task> existingRootTasks = repo.findByParentTaskIsNullAndUserIdAndDisplayOrderGreaterThanEqualAndIsDeletedFalseOrderByDisplayOrderAsc(
+                userId, 1);
+            for (Task existingTask : existingRootTasks) {
+                existingTask.setDisplayOrder(existingTask.getDisplayOrder() + 1);
+                repo.save(existingTask);
+            }
+        } else {
+            // Subtask: append to bottom (display_order = max + 1)
+            Integer maxOrder = repo.findMaxDisplayOrderByParentTaskId(parentTaskId, userId);
+            displayOrder = maxOrder + 1;
+        }
+
         Task t = Task.builder()
                 .title(title)
                 .description(taskDesc)
                 .user(user)
                 .parentTask(parentTask)
+                .displayOrder(displayOrder)
                 .createdAt(Instant.now())
                 .isCompleted(false)
                 .isDeleted(false)
@@ -295,5 +314,70 @@ public class TaskServiceImpl implements TaskService {
         
         // Remove all relationships for this task
         taskAttachmentRepo.deleteByTaskId(taskId);
+    }
+
+    @Override
+    @Transactional
+    public Task reorderTask(UUID taskId, Integer newDisplayOrder, UUID userId) {
+        log.info("reorderTask called with taskId: {}, newDisplayOrder: {}, userId: {}", taskId, newDisplayOrder, userId);
+        
+        // Verify task belongs to user
+        Task task = getTaskById(taskId, userId);
+        
+        if (newDisplayOrder < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Display order must be at least 1");
+        }
+        
+        Integer currentOrder = task.getDisplayOrder();
+        UUID parentTaskId = task.getParentTask() != null ? task.getParentTask().getId() : null;
+        
+        log.info("Current order: {}, Parent task ID: {}", currentOrder, parentTaskId);
+        
+        if (currentOrder.equals(newDisplayOrder)) {
+            // No change needed
+            return task;
+        }
+        
+        if (currentOrder < newDisplayOrder) {
+            // Moving down: shift tasks between current+1 and new position up by 1
+            List<Task> tasksToShift;
+            if (parentTaskId == null) {
+                tasksToShift = repo.findByParentTaskIsNullAndUserIdAndDisplayOrderGreaterThanEqualAndIsDeletedFalseOrderByDisplayOrderAsc(
+                    userId, currentOrder + 1);
+            } else {
+                tasksToShift = repo.findByParentTaskIdAndUserIdAndDisplayOrderGreaterThanEqualAndIsDeletedFalseOrderByDisplayOrderAsc(
+                    parentTaskId, userId, currentOrder + 1);
+            }
+            
+            for (Task taskToShift : tasksToShift) {
+                if (taskToShift.getDisplayOrder() <= newDisplayOrder) {
+                    taskToShift.setDisplayOrder(taskToShift.getDisplayOrder() - 1);
+                    repo.save(taskToShift);
+                }
+            }
+        } else {
+            // Moving up: shift tasks between new position and current-1 down by 1
+            List<Task> tasksToShift;
+            if (parentTaskId == null) {
+                tasksToShift = repo.findByParentTaskIsNullAndUserIdAndDisplayOrderGreaterThanEqualAndIsDeletedFalseOrderByDisplayOrderAsc(
+                    userId, newDisplayOrder);
+            } else {
+                tasksToShift = repo.findByParentTaskIdAndUserIdAndDisplayOrderGreaterThanEqualAndIsDeletedFalseOrderByDisplayOrderAsc(
+                    parentTaskId, userId, newDisplayOrder);
+            }
+            
+            for (Task taskToShift : tasksToShift) {
+                if (taskToShift.getDisplayOrder() < currentOrder) {
+                    taskToShift.setDisplayOrder(taskToShift.getDisplayOrder() + 1);
+                    repo.save(taskToShift);
+                }
+            }
+        }
+        
+        // Update the moved task
+        task.setDisplayOrder(newDisplayOrder);
+        Task savedTask = repo.save(task);
+        log.info("Task reordered successfully. New display order: {}", savedTask.getDisplayOrder());
+        return savedTask;
     }
 }

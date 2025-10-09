@@ -24,6 +24,7 @@ interface Task {
   updatedAt: string;
   parentTaskId?: string;
   subtaskCount?: number;
+  displayOrder?: number;
 }
 
 interface TaskItemProps {
@@ -84,7 +85,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
               {task.completed && (
                 <Chip label="Completed" color="success" size="small" />
               )}
-              {} subtask count: {task.subtaskCount}
               {task.subtaskCount != null && task.subtaskCount > 0 && (
                 <Chip
                   label={`${task.subtaskCount} subtask${

@@ -47,6 +47,9 @@ public class Task {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
+    @Column(name = "display_order")
+    private Integer displayOrder;
+
     // Parent-child relationship for subtasks
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_task_id", nullable = true)

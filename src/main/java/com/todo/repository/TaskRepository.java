@@ -20,7 +20,7 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findByIsDeletedFalse();
 
     // User-specific queries
-    List<Task> findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(UUID userId);
+    List<Task> findByUserIdAndIsDeletedFalseOrderByDisplayOrderAsc(UUID userId);
     Optional<Task> findByIdAndUserIdAndIsDeletedFalse(UUID id, UUID userId);
     Page<Task> findByUserIdAndIsDeletedFalse(UUID userId, org.springframework.data.domain.Pageable pageable);
     List<Task> findByUserIdAndIsDeletedFalse(UUID userId);
@@ -34,13 +34,28 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findByUser(User user);
 
     // Subtask-related queries
-    List<Task> findByParentTaskIdAndUserIdAndIsDeletedFalse(UUID parentTaskId, UUID userId);
+    List<Task> findByParentTaskIdAndUserIdAndIsDeletedFalseOrderByDisplayOrderAsc(UUID parentTaskId, UUID userId);
+    List<Task> findByParentTaskIsNullAndUserIdAndIsDeletedFalseOrderByDisplayOrderAsc(UUID userId);
+    
+    // Legacy methods for backward compatibility
     List<Task> findByParentTaskIdAndUserIdAndIsDeletedFalseOrderByCreatedAtDesc(UUID parentTaskId, UUID userId);
     List<Task> findByParentTaskIsNullAndUserIdAndIsDeletedFalse(UUID userId);
-    List<Task> findByParentTaskIsNullAndUserIdAndIsDeletedFalse(UUID userId);
+    
+    // Helper methods for reordering
+    @Query("SELECT COALESCE(MAX(t.displayOrder), 0) FROM Task t WHERE t.parentTask.id = :parentTaskId AND t.user.id = :userId AND t.isDeleted = false")
+    Integer findMaxDisplayOrderByParentTaskId(@Param("parentTaskId") UUID parentTaskId, @Param("userId") UUID userId);
+    
+    @Query("SELECT COALESCE(MAX(t.displayOrder), 0) FROM Task t WHERE t.parentTask IS NULL AND t.user.id = :userId AND t.isDeleted = false")
+    Integer findMaxDisplayOrderForRootTasks(@Param("userId") UUID userId);
+    
+    List<Task> findByParentTaskIdAndUserIdAndDisplayOrderGreaterThanEqualAndIsDeletedFalseOrderByDisplayOrderAsc(
+        UUID parentTaskId, UUID userId, Integer displayOrder);
+    
+    List<Task> findByParentTaskIsNullAndUserIdAndDisplayOrderGreaterThanEqualAndIsDeletedFalseOrderByDisplayOrderAsc(
+        UUID userId, Integer displayOrder);
 
-    @Query("SELECT DISTINCT t FROM Task t LEFT JOIN FETCH t.subtasks s WHERE t.user.id = :userId AND t.isDeleted = false AND (s IS NULL OR s.isDeleted = false) ORDER BY t.createdAt DESC")
-    List<Task> findByUserIdAndIsDeletedFalseOrderByCreatedAtDescWithSubtasks(@Param("userId") UUID userId);
+    @Query("SELECT DISTINCT t FROM Task t LEFT JOIN FETCH t.subtasks s WHERE t.user.id = :userId AND t.isDeleted = false AND (s IS NULL OR s.isDeleted = false) ORDER BY t.displayOrder ASC")
+    List<Task> findByUserIdAndIsDeletedFalseOrderByDisplayOrderAscWithSubtasks(@Param("userId") UUID userId);
 
     // Recursive query to get all subtasks up to a certain depth
     @Query(value = """

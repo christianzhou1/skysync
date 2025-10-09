@@ -47,4 +47,7 @@ public interface TaskService {
     void linkAttachmentToTask(UUID taskId, UUID attachmentId, UUID userId);
     void unlinkAttachmentFromTask(UUID taskId, UUID attachmentId, UUID userId);
     void unlinkAllAttachmentsFromTask(UUID taskId, UUID userId);
+    
+    // Reordering methods
+    Task reorderTask(UUID taskId, Integer newDisplayOrder, UUID userId);
 }

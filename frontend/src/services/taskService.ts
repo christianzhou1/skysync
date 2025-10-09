@@ -1,4 +1,6 @@
 import { taskApi } from "./generatedApi";
+import axios from "axios";
+import { envConfig } from "../config/env";
 
 export interface ApiResponse<T = any> {
   code: number;
@@ -264,6 +266,32 @@ class TaskService {
       return {
         code: error.response?.status || 500,
         msg: error.response?.data?.msg || "Failed to get root tasks.",
+      };
+    }
+  }
+
+  async reorderTask(taskId: string, newDisplayOrder: number, userId: string) {
+    try {
+      const response = await axios.patch(
+        `${envConfig.apiBaseUrl}/tasks/${taskId}/reorder`,
+        null,
+        {
+          params: { newDisplayOrder },
+          headers: {
+            "X-User-Id": userId,
+          },
+        }
+      );
+
+      return {
+        code: response.status,
+        data: response.data,
+      };
+    } catch (error: any) {
+      console.error("Reorder task error:", error);
+      return {
+        code: error.response?.status || 500,
+        msg: error.response?.data?.msg || "Failed to reorder task.",
       };
     }
   }
