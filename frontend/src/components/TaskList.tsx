@@ -12,9 +12,28 @@ import {
   Paper,
   TextField,
   Typography,
+  IconButton,
+  Chip,
 } from "@mui/material";
-import { AddTask, Refresh } from "@mui/icons-material";
+import {
+  AddTask,
+  Refresh,
+  Delete,
+  CheckCircle,
+  RadioButtonUnchecked,
+} from "@mui/icons-material";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
+import { useTreeItem } from "@mui/x-tree-view/useTreeItem";
+import {
+  TreeItemContent,
+  TreeItemRoot,
+  TreeItemGroupTransition,
+  TreeItemIconContainer,
+  TreeItemLabel,
+} from "@mui/x-tree-view/TreeItem";
+import type { TreeItemProps } from "@mui/x-tree-view/TreeItem";
+import { TreeItemIcon } from "@mui/x-tree-view/TreeItemIcon";
+import { TreeItemProvider } from "@mui/x-tree-view/TreeItemProvider";
 
 // Simple tree data management like the Gmail demo
 
@@ -116,6 +135,129 @@ const getAllParentItemIds = (treeData: MUITreeItem[]): string[] => {
   return parentIds;
 };
 
+// Custom Tree Item Component with Task Controls using useTreeItem hook
+const CustomTaskTreeItem = React.forwardRef<
+  HTMLLIElement,
+  TreeItemProps & {
+    task: Task;
+    onToggleCompletion: (taskId: string, currentStatus: boolean) => void;
+    onDelete: (taskId: string) => void;
+  }
+>(
+  (
+    {
+      id,
+      itemId,
+      label,
+      disabled,
+      children,
+      task,
+      onToggleCompletion,
+      onDelete,
+    },
+    ref
+  ) => {
+    const {
+      getContextProviderProps,
+      getRootProps,
+      getContentProps,
+      getLabelProps,
+      getGroupTransitionProps,
+      getIconContainerProps,
+      status,
+    } = useTreeItem({ id, itemId, label, disabled, children, rootRef: ref });
+
+    return (
+      <TreeItemProvider {...getContextProviderProps()}>
+        <TreeItemRoot {...getRootProps()}>
+          <TreeItemContent {...getContentProps()}>
+            <TreeItemIconContainer {...getIconContainerProps()}>
+              <TreeItemIcon status={status} />
+            </TreeItemIconContainer>
+
+            <TreeItemLabel {...getLabelProps()}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  py: 0.5,
+                  px: 1,
+                  borderRadius: 1,
+                  backgroundColor: task.completed
+                    ? "action.hover"
+                    : "transparent",
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                }}
+              >
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleCompletion(task.id, task.completed);
+                  }}
+                  color={task.completed ? "warning" : "success"}
+                  size="small"
+                >
+                  {task.completed ? <RadioButtonUnchecked /> : <CheckCircle />}
+                </IconButton>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    flex: 1,
+                    textDecoration: task.completed ? "line-through" : "none",
+                    color: task.completed ? "text.secondary" : "text.primary",
+                  }}
+                >
+                  {task.title}
+                </Typography>
+
+                {task.subtaskCount != null && task.subtaskCount > 0 && (
+                  <Chip
+                    label={`${task.subtaskCount} subtask${
+                      task.subtaskCount > 1 ? "s" : ""
+                    }`}
+                    color="info"
+                    size="small"
+                    variant="outlined"
+                  />
+                )}
+
+                {task.attachmentCount != null && task.attachmentCount > 0 && (
+                  <Chip
+                    label={`${task.attachmentCount} attachment${
+                      task.attachmentCount > 1 ? "s" : ""
+                    }`}
+                    color="info"
+                    size="small"
+                    variant="outlined"
+                  />
+                )}
+
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(task.id);
+                  }}
+                  color="error"
+                  size="small"
+                >
+                  <Delete />
+                </IconButton>
+              </Box>
+            </TreeItemLabel>
+          </TreeItemContent>
+          {children && (
+            <TreeItemGroupTransition {...getGroupTransitionProps()} />
+          )}
+        </TreeItemRoot>
+      </TreeItemProvider>
+    );
+  }
+);
+
 const TaskList: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   // Tree data structure for MUI Tree View
@@ -156,6 +298,53 @@ const TaskList: React.FC = () => {
       setError("Failed to fetch tasks");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleTaskCompletion = async (
+    taskId: string,
+    currentStatus: boolean
+  ) => {
+    try {
+      const userId = authService.getUserId();
+      if (!userId) return;
+
+      const response = await taskService.setTaskCompleted(
+        taskId,
+        !currentStatus,
+        userId
+      );
+
+      if (response.code === 200) {
+        // Update local state
+        setTasks(
+          tasks.map((task) =>
+            task.id === taskId ? { ...task, completed: !currentStatus } : task
+          )
+        );
+      } else {
+        setError(response.msg);
+      }
+    } catch {
+      setError("Failed to update task");
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    try {
+      const userId = authService.getUserId();
+      if (!userId) return;
+
+      const response = await taskService.deleteTask(taskId, userId);
+
+      if (response.code === 200) {
+        // Remove from local state
+        setTasks(tasks.filter((task) => task.id !== taskId));
+      } else {
+        setError(response.msg);
+      }
+    } catch {
+      setError("Failed to delete task");
     }
   };
 
@@ -331,6 +520,21 @@ const TaskList: React.FC = () => {
             onExpandedItemsChange={handleExpandedItemsChange}
             onItemExpansionToggle={handleItemExpansionToggle}
             expansionTrigger="iconContainer"
+            slots={{
+              item: (props) => {
+                const task = tasks.find((t) => t.id === props.itemId);
+                if (!task) return null;
+
+                return (
+                  <CustomTaskTreeItem
+                    {...props}
+                    task={task}
+                    onToggleCompletion={toggleTaskCompletion}
+                    onDelete={deleteTask}
+                  />
+                );
+              },
+            }}
             sx={{
               height: 400,
               flexGrow: 1,
