@@ -494,34 +494,8 @@ const TaskList: React.FC = () => {
   }
 
   return (
-    <Paper elevation={3} sx={{ p: 3 }}>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
-        <Typography variant="h4" component="h2">
-          My Tasks
-        </Typography>
-        <Box display="flex" gap={1}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddTask />}
-            onClick={openCreateTaskForm}
-          >
-            Create Task
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Refresh />}
-            onClick={fetchTasks}
-          >
-            Refresh
-          </Button>
-        </Box>
-      </Box>
+    <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+
 
       {tasks.length === 0 ? (
         <Typography
@@ -533,7 +507,26 @@ const TaskList: React.FC = () => {
           No tasks found. Create your first task!
         </Typography>
       ) : (
-        <Box sx={{ minHeight: 400, flexGrow: 1, maxWidth: 300 }}>
+        <Box sx={{ minHeight: 700, flexGrow: 1, border: 1, borderRadius: 2 }}>
+
+
+            <Box display="flex" px={0} justifyContent={"space-evenly"} gap={2} border={1}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddTask />}
+                onClick={openCreateTaskForm}
+              >
+                Create Task
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Refresh />}
+                onClick={fetchTasks}
+              >
+                Refresh
+              </Button>
+            </Box>
           <RichTreeView
             items={treeData}
             expandedItems={expandedItems}
@@ -557,9 +550,8 @@ const TaskList: React.FC = () => {
               },
             }}
             sx={{
-              height: 400,
+              height: 700,
               flexGrow: 1,
-              maxWidth: 400,
               overflowY: "auto",
             }}
           />

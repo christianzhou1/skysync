@@ -2,29 +2,40 @@ import { useState, useEffect } from "react";
 import { authService } from "./services";
 import LoginForm from "./components/LoginForm";
 import TaskList from "./components/TaskList";
+import Dashboard from "./components/Dashboard";
 import "./App.css";
 import {
   AppBar,
   Box,
   Button,
-  CircularProgress, Container,
+  CircularProgress,
+  Container,
   createTheme,
   CssBaseline,
-  ThemeProvider, Toolbar,
-  Typography
+  ThemeProvider,
+  Toolbar,
+  Typography,
 } from "@mui/material";
-
 
 const theme = createTheme({
   palette: {
+    mode: "dark",
     primary: {
-      main: '#1976d2'
+      main: "#90caf9",
     },
     secondary: {
-      main: '#dc004e'
-    }
-  }
-})
+      main: "#f48fb1",
+    },
+    background: {
+      default: "#121212",
+      paper: "#1e1e1e",
+    },
+    text: {
+      primary: "#ffffff",
+      secondary: "#b3b3b3",
+    },
+  },
+});
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -54,7 +65,13 @@ function App() {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="grey.50">
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="100vh"
+          bgcolor="background.default"
+        >
           <CircularProgress />
         </Box>
       </ThemeProvider>
@@ -64,8 +81,8 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>
-        <AppBar position="static" sx={{ backgroundColor: 'grey.800' }}>
+      <Box sx={{ minHeight: "100vh", backgroundColor: "background.default" }}>
+        <AppBar position="static" sx={{ backgroundColor: "background.paper" }}>
           <Toolbar>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Todo App
@@ -74,7 +91,10 @@ function App() {
               <Button
                 color="inherit"
                 onClick={handleLogout}
-                sx={{ backgroundColor: 'error.main', '&:hover': { backgroundColor: 'error.dark' } }}
+                sx={{
+                  backgroundColor: "error.main",
+                  "&:hover": { backgroundColor: "error.dark" },
+                }}
               >
                 Logout
               </Button>
@@ -86,7 +106,7 @@ function App() {
           {!isAuthenticated ? (
             <LoginForm onLoginSuccess={handleLoginSuccess} />
           ) : (
-            <TaskList />
+            <Dashboard />
           )}
         </Container>
       </Box>

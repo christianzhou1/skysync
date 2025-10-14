@@ -1,10 +1,13 @@
-/* Custom styles that complement Tailwind */
+/* Custom styles that complement dark mode */
 .app {
-  @apply min-h-screen bg-gray-50;
+  @apply min-h-screen;
+  background-color: #121212;
 }
 
 .app-header {
-  @apply bg-slate-800 text-white px-8 py-4 flex justify-between items-center shadow-md;
+  @apply px-8 py-4 flex justify-between items-center shadow-md;
+  background-color: #1e1e1e;
+  color: #ffffff;
 }
 
 .app-header h1 {
@@ -12,7 +15,13 @@
 }
 
 .logout-btn {
-  @apply bg-red-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-red-700;
+  @apply border-0 px-4 py-2 rounded cursor-pointer text-sm;
+  background-color: #d32f2f;
+  color: #ffffff;
+}
+
+.logout-btn:hover {
+  background-color: #b71c1c;
 }
 
 .app-main {
@@ -20,16 +29,19 @@
 }
 
 .loading {
-  @apply text-center py-8 text-lg text-gray-600;
+  @apply text-center py-8 text-lg;
+  color: #b3b3b3;
 }
 
 /* Login Form Styles */
 .login-form {
-  @apply bg-white p-8 rounded-lg shadow-lg max-w-md mx-auto;
+  @apply p-8 rounded-lg shadow-lg max-w-md mx-auto;
+  background-color: #1e1e1e;
 }
 
 .login-form h2 {
-  @apply text-center mb-6 text-slate-800;
+  @apply text-center mb-6;
+  color: #ffffff;
 }
 
 .form-group {
@@ -37,32 +49,61 @@
 }
 
 .form-group label {
-  @apply block mb-2 font-medium text-gray-700;
+  @apply block mb-2 font-medium;
+  color: #b3b3b3;
 }
 
 .form-group input {
-  @apply w-full p-3 border border-gray-300 rounded text-base box-border focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200;
+  @apply w-full p-3 border rounded text-base box-border focus:outline-none focus:ring-2;
+  background-color: #2d2d2d;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.form-group input:focus {
+  border-color: #90caf9;
+  ring-color: #90caf9;
 }
 
 .login-form button {
-  @apply w-full bg-blue-600 text-white border-0 p-3 rounded text-base cursor-pointer mt-4 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed;
+  @apply w-full border-0 p-3 rounded text-base cursor-pointer mt-4 disabled:cursor-not-allowed;
+  background-color: #1976d2;
+  color: #ffffff;
+}
+
+.login-form button:hover {
+  background-color: #1565c0;
+}
+
+.login-form button:disabled {
+  background-color: #424242;
 }
 
 .error-message {
-  @apply bg-red-600 text-white p-3 rounded mt-4 text-center;
+  @apply p-3 rounded mt-4 text-center;
+  background-color: #d32f2f;
+  color: #ffffff;
 }
 
 /* Task List Styles */
 .task-list {
-  @apply bg-white p-8 rounded-lg shadow-lg;
+  @apply p-8 rounded-lg shadow-lg;
+  background-color: #1e1e1e;
 }
 
 .task-list h2 {
-  @apply mt-0 text-slate-800 flex justify-between items-center;
+  @apply mt-0 flex justify-between items-center;
+  color: #ffffff;
 }
 
 .task-list button {
-  @apply bg-blue-600 text-white border-0 px-4 py-2 rounded cursor-pointer text-sm hover:bg-blue-700;
+  @apply border-0 px-4 py-2 rounded cursor-pointer text-sm;
+  background-color: #1976d2;
+  color: #ffffff;
+}
+
+.task-list button:hover {
+  background-color: #1565c0;
 }
 
 .task-list ul {
@@ -70,23 +111,29 @@
 }
 
 .task-item {
-  @apply border border-gray-200 rounded p-4 mb-4 flex justify-between items-start;
+  @apply border rounded p-4 mb-4 flex justify-between items-start;
+  background-color: #2d2d2d;
+  border-color: #404040;
 }
 
 .task-item.completed {
-  @apply bg-gray-50 opacity-70;
+  opacity: 0.7;
+  background-color: #1a1a1a;
 }
 
 .task-content h3 {
-  @apply m-0 mb-2 text-slate-800;
+  @apply m-0 mb-2;
+  color: #ffffff;
 }
 
 .task-content p {
-  @apply m-0 mb-2 text-gray-600;
+  @apply m-0 mb-2;
+  color: #b3b3b3;
 }
 
 .task-content small {
-  @apply text-gray-500 text-xs;
+  @apply text-xs;
+  color: #888888;
 }
 
 .task-actions {
@@ -94,21 +141,37 @@
 }
 
 .complete-btn {
-  @apply bg-green-600 hover:bg-green-700;
+  background-color: #2e7d32;
+}
+
+.complete-btn:hover {
+  background-color: #1b5e20;
 }
 
 .uncomplete-btn {
-  @apply bg-yellow-600 hover:bg-yellow-700;
+  background-color: #f57c00;
+}
+
+.uncomplete-btn:hover {
+  background-color: #e65100;
 }
 
 .delete-btn {
-  @apply bg-red-600 hover:bg-red-700;
+  background-color: #d32f2f;
+}
+
+.delete-btn:hover {
+  background-color: #b71c1c;
 }
 
 .error {
-  @apply bg-red-600 text-white p-4 rounded text-center;
+  @apply p-4 rounded text-center;
+  background-color: #d32f2f;
+  color: #ffffff;
 }
 
 .error button {
-  @apply bg-white text-red-600 border-0 px-4 py-2 rounded cursor-pointer mt-2;
+  @apply border-0 px-4 py-2 rounded cursor-pointer mt-2;
+  background-color: #ffffff;
+  color: #d32f2f;
 }

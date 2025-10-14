@@ -1,15 +1,27 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
-    min-height: 100vh;
+  min-height: 100vh;
+}
+
+:root {
+  --color-resize-bar: #515b6a;
+  --color-resize-bar-active: #b1bdd0;
+  --color-resize-bar-hover: #515b6a;
+}
+
+/* Dark mode support */
+body {
+  background-color: #121212;
+  color: #ffffff;
 }
