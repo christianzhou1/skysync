@@ -21,6 +21,7 @@ import {
   Delete,
   CheckCircle,
   RadioButtonUnchecked,
+  SubdirectoryArrowRight,
 } from "@mui/icons-material";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { useTreeItem } from "@mui/x-tree-view/useTreeItem";
@@ -142,6 +143,7 @@ const CustomTaskTreeItem = React.forwardRef<
     task: Task;
     onToggleCompletion: (taskId: string, currentStatus: boolean) => void;
     onDelete: (taskId: string) => void;
+    onCreateSubtask: (parentTaskId: string) => void;
   }
 >(
   (
@@ -154,6 +156,7 @@ const CustomTaskTreeItem = React.forwardRef<
       task,
       onToggleCompletion,
       onDelete,
+      onCreateSubtask,
     },
     ref
   ) => {
@@ -235,6 +238,18 @@ const CustomTaskTreeItem = React.forwardRef<
                     variant="outlined"
                   />
                 )}
+
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCreateSubtask(task.id);
+                  }}
+                  color="primary"
+                  title="Add Subtask"
+                  size="small"
+                >
+                  <SubdirectoryArrowRight />
+                </IconButton>
 
                 <IconButton
                   onClick={(e) => {
@@ -408,6 +423,11 @@ const TaskList: React.FC = () => {
     setShowCreateForm(true);
   };
 
+  const openCreateSubtaskForm = (parentId: string) => {
+    setParentTaskId(parentId);
+    setShowCreateForm(true);
+  };
+
   const handleExpandedItemsChange = (
     _event: React.SyntheticEvent | null,
     itemIds: string[]
@@ -531,6 +551,7 @@ const TaskList: React.FC = () => {
                     task={task}
                     onToggleCompletion={toggleTaskCompletion}
                     onDelete={deleteTask}
+                    onCreateSubtask={openCreateSubtaskForm}
                   />
                 );
               },
