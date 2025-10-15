@@ -1,26 +1,29 @@
 app:
   storage:
-    type: s3
+    type: ${STORAGE_TYPE:s3}
     s3:
-      bucket: todo-bucket123
-      prefix: attachments
-#    root-dir: ./uploads
+      bucket: ${S3_BUCKET_NAME:todo-bucket123}
+      prefix: ${S3_PREFIX:attachments}
+#    root-dir: ${LOCAL_STORAGE_PATH:./uploads}
 
 spring:
   cloud:
     aws:
       region:
-        static: us-east-2
+        static: ${AWS_REGION:us-east-2}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY:}
+        secret-key: ${AWS_SECRET_KEY:}
 
   servlet:
     multipart:
-      max-file-size: 25MB
-      max-request-size: 25MB
+      max-file-size: ${MAX_FILE_SIZE:25MB}
+      max-request-size: ${MAX_REQUEST_SIZE:25MB}
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/todo_db
-    username: user-todo
-    password: todo123
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/todo_db}
+    username: ${DATABASE_USERNAME:user-todo}
+    password: ${DATABASE_PASSWORD:todo123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -41,18 +44,20 @@ spring:
     clean-disabled: true
     schemas: public
     default-schema: public
-    url: jdbc:postgresql://localhost:5433/todo_db
-    user: user-todo
-    password: todo123
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/todo_db}
+    user: ${DATABASE_USERNAME:user-todo}
+    password: ${DATABASE_PASSWORD:todo123}
 
 logging:
   level:
-    org.hibernate.SQL:
-      debug
-      # runs db/migration scripts automatically
+    org.hibernate.SQL: debug
+    org.springframework.security: debug
+    com.todo.security: debug
+    com.todo.controller: debug
+    # runs db/migration scripts automatically
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   servlet:
     context-path: /api
 
@@ -67,15 +72,17 @@ management:
 
 # JWT Configuration
 jwt:
-  secret: mySecretKey123456789012345678901234567890
-  expiration: 86400000 # 24 hours in milliseconds
+  secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
 
 # OpenAPI Configuration
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: true
   swagger-ui:
     path: /swagger-ui.html
+    enabled: true
     operationsSorter: method
     tagsSorter: alpha
   show-actuator: true

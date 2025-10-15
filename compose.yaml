@@ -3,8 +3,8 @@ services:
     image: postgres:17
     container_name: todo-db
     environment:
-      POSTGRES_USER: user-todo
-      POSTGRES_PASSWORD: todo123
+      POSTGRES_USER: ${DATABASE_USERNAME:-user-todo}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-todo123}
       POSTGRES_DB: todo_db
     ports:
       - "5433:5432"
@@ -13,7 +13,7 @@ services:
     networks:
       - todo-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user-todo -d todo_db || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-user-todo} -d todo_db || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -23,13 +23,19 @@ services:
     container_name: todo-backend
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://todo-db:5432/todo_db"
-      SPRING_DATASOURCE_USERNAME: "user-todo"
-      SPRING_DATASOURCE_PASSWORD: "todo123"
+      SPRING_DATASOURCE_USERNAME: "${DATABASE_USERNAME:-user-todo}"
+      SPRING_DATASOURCE_PASSWORD: "${DATABASE_PASSWORD:-todo123}"
+      JWT_SECRET: "${JWT_SECRET:-mySecretKey123456789012345678901234567890}"
+      AWS_REGION: "${AWS_REGION:-us-east-2}"
+      AWS_ACCESS_KEY: "${AWS_ACCESS_KEY:-}"
+      AWS_SECRET_KEY: "${AWS_SECRET_KEY:-}"
+      S3_BUCKET_NAME: "${S3_BUCKET_NAME:-todo-bucket123}"
+      STORAGE_TYPE: "${STORAGE_TYPE:-s3}"
     depends_on:
       todo-db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "${SERVER_PORT:-8080}:8080"
     networks:
       - todo-net
 

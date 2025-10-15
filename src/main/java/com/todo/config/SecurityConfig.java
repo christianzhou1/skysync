@@ -35,10 +35,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // Allow all origins for development (be more restrictive in production)
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -51,20 +53,22 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
-                        // Temporarily allow all for testing
-                        .anyRequest().permitAll()
-                        
-                        // TODO: Re-enable proper authentication after testing
-                        // .requestMatchers("/api/users").permitAll()  // User registration
-                        // .requestMatchers("/api/auth/**").permitAll()  // Auth endpoints
-                        // .requestMatchers("/api/hello").permitAll()  // Health check
-                        // .requestMatchers("/actuator/health").permitAll()  // Health monitoring
-                        // .requestMatchers("/api/users/**").authenticated()  // User management
-                        // .requestMatchers("/api/tasks/**").authenticated()  // All task operations
-                        // .requestMatchers("/api/attachments/**").authenticated()  // All file operations
-                        // .anyRequest().authenticated()  // Everything else requires auth
+                        .requestMatchers("/users").permitAll()  // User registration
+                        .requestMatchers("/auth/**").permitAll()  // Auth endpoints
+                        .requestMatchers("/hello").permitAll()  // Health check
+                        .requestMatchers("/debug/**").permitAll()  // Debug endpoints
+                        .requestMatchers("/actuator/**").permitAll()  // Actuator endpoints
+                        .requestMatchers("/api-docs/**").permitAll()  // OpenAPI docs
+                        .requestMatchers("/swagger-ui/**").permitAll()  // Swagger UI
+                        .requestMatchers("/swagger-ui.html").permitAll()  // Swagger UI
+                        .requestMatchers("/v3/api-docs/**").permitAll()  // OpenAPI v3 docs
+                        .requestMatchers("/environment/**").permitAll()  // Environment info
+                        .requestMatchers("/users/**").authenticated()  // User management
+                        .requestMatchers("/tasks/**").authenticated()  // All task operations
+                        .requestMatchers("/attachments/**").authenticated()  // All file operations
+                        .anyRequest().authenticated()  // Everything else requires auth
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)

@@ -28,24 +28,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
                                   FilterChain filterChain) throws ServletException, IOException {
         
+        final String requestURI = request.getRequestURI();
+        final String method = request.getMethod();
+        log.info("Processing request: {} {}", method, requestURI);
+        
         final String authHeader = request.getHeader("Authorization");
+        log.info("Authorization header: {}", authHeader != null ? "Present" : "Missing");
+        
         final String jwt;
         final String username;
         final String userId;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.info("No Bearer token found, continuing without authentication");
             filterChain.doFilter(request, response);
             return;
         }
 
         jwt = authHeader.substring(7);
+        log.info("JWT token found, length: {}", jwt.length());
         
         try {
             username = jwtUtil.extractUsername(jwt);
             userId = jwtUtil.extractUserId(jwt);
+            log.info("Extracted username: {}, userId: {}", username, userId);
             
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 if (jwtUtil.validateToken(jwt, username)) {
+                    log.info("JWT token is valid, setting authentication");
                     UsernamePasswordAuthenticationToken authToken = 
                         new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -54,10 +64,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(Map.of("userId", userId, "username", username));
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.info("Authentication set successfully");
+                } else {
+                    log.warn("JWT token validation failed for username: {}", username);
                 }
+            } else {
+                log.info("Username is null or authentication already exists");
             }
         } catch (Exception e) {
-            log.error("JWT validation failed", e);
+            log.error("JWT validation failed for request: {} {}", method, requestURI, e);
         }
 
         filterChain.doFilter(request, response);

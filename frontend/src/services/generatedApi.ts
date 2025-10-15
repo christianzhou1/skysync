@@ -19,13 +19,31 @@ const configuration = new Configuration({
   },
 });
 
-// Add request interceptor to conditionally add X-User-Id header
+// Add request interceptor to add Authorization and X-User-Id headers
 axios.interceptors.request.use(
   (config) => {
+    // Add Authorization header with Bearer token
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+      console.log(
+        "Added Authorization header:",
+        `Bearer ${token.substring(0, 20)}...`
+      );
+    } else {
+      console.log("No auth token found in localStorage");
+    }
+
+    // Add X-User-Id header
     const userId = localStorage.getItem("userId");
     if (userId) {
       config.headers["X-User-Id"] = userId;
+      console.log("Added X-User-Id header:", userId);
+    } else {
+      console.log("No userId found in localStorage");
     }
+
+    console.log("Request headers:", config.headers);
     return config;
   },
   (error) => {
