@@ -26,7 +26,7 @@ import {
   Delete,
   AttachFile,
   Upload,
-  Clear,
+  Clear, Refresh,
 } from "@mui/icons-material";
 import type { AttachmentInfo } from "../generated/api";
 import type { Task } from "./TaskList.tsx";
@@ -277,6 +277,13 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
               <Clear />
             </IconButton>
           )}
+          <Button
+            variant="outlined"
+            startIcon={<Refresh />}
+            onClick={fetchAttachments}
+          >
+            Refresh
+          </Button>
           <IconButton
             edge="end"
             onClick={handleUpload}
