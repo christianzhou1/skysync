@@ -28,7 +28,7 @@ const theme = createTheme({
     },
     background: {
       default: "#121212",
-      paper: "#1e1e1e",
+      paper: "#0f0f0f",
     },
     text: {
       primary: "#ffffff",
@@ -81,7 +81,14 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ minHeight: "100vh", backgroundColor: "background.default" }}>
+      <Box
+        sx={{
+          height: "100vh",
+          backgroundColor: "background.default",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <AppBar position="static" sx={{ backgroundColor: "background.paper" }}>
           <Toolbar>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
@@ -102,13 +109,24 @@ function App() {
           </Toolbar>
         </AppBar>
 
-        <Container maxWidth="lg" sx={{ my: 4 }}>
+        <Box
+          sx={{
+            flex: 1,
+            overflow: "hidden",
+            p: 2,
+          }}
+        >
           {!isAuthenticated ? (
-            <LoginForm onLoginSuccess={handleLoginSuccess} />
+            <Container
+              maxWidth="sm"
+              sx={{ height: "100%", display: "flex", alignItems: "center" }}
+            >
+              <LoginForm onLoginSuccess={handleLoginSuccess} />
+            </Container>
           ) : (
             <Dashboard />
           )}
-        </Container>
+        </Box>
       </Box>
     </ThemeProvider>
   );

@@ -1,16 +1,180 @@
-import React, { useState, useEffect } from "react";
-import { Paper, Typography, Box } from "@mui/material";
+import React from "react";
+import { Paper, Typography, Box, Chip, Divider } from "@mui/material";
+import {
+  CheckCircle,
+  RadioButtonUnchecked,
+  AccessTime,
+  CalendarToday,
+  Description,
+  AttachFile,
+  SubdirectoryArrowRight,
+} from "@mui/icons-material";
+import type { Task } from "./TaskList";
 
-const TaskDetail: React.FC = () => {
-  return (
-    <Paper elevation={3} sx={{ p: 3, height: "100%", borderRadius: 2 }}>
-      <Typography variant="h5" component="h2" gutterBottom>
-        Task Detail
-      </Typography>
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="body1" color="text.secondary">
-          Select a task from the list to view its details here.
+interface TaskDetailProps {
+  selectedTask: Task | null;
+}
+
+const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+  };
+
+  if (!selectedTask) {
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          height: "100%",
+          borderRadius: 2,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <Typography variant="h5" component="h2" gutterBottom>
+          Task Detail
         </Typography>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="body1" color="text.secondary">
+            Select a task from the list to view its details here.
+          </Typography>
+        </Box>
+      </Paper>
+    );
+  }
+
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        p: 3,
+        height: "100%",
+        borderRadius: 2,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <Typography variant="h5" component="h2" sx={{ flex: 1 }}>
+          Task Detail
+        </Typography>
+        <Chip
+          icon={
+            selectedTask.completed ? <CheckCircle /> : <RadioButtonUnchecked />
+          }
+          label={selectedTask.completed ? "Completed" : "In Progress"}
+          color={selectedTask.completed ? "success" : "default"}
+          variant={selectedTask.completed ? "filled" : "outlined"}
+        />
+      </Box>
+
+      <Divider sx={{ mb: 2 }} />
+
+      <Box sx={{ flex: 1, overflow: "auto" }}>
+        {/* Task Title */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+            {selectedTask.title}
+          </Typography>
+        </Box>
+
+        {/* Task Description */}
+        {selectedTask.description && (
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+              <Description color="action" />
+              <Typography variant="subtitle2" color="text.secondary">
+                Description
+              </Typography>
+            </Box>
+            <Typography variant="body1" sx={{ pl: 4 }}>
+              {selectedTask.description}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Task Statistics */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Task Information
+          </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {selectedTask.subtaskCount !== undefined &&
+              selectedTask.subtaskCount > 0 && (
+                <Chip
+                  icon={<SubdirectoryArrowRight />}
+                  label={`${selectedTask.subtaskCount} subtask${
+                    selectedTask.subtaskCount > 1 ? "s" : ""
+                  }`}
+                  color="info"
+                  variant="outlined"
+                  size="small"
+                />
+              )}
+            {selectedTask.attachmentCount !== undefined &&
+              selectedTask.attachmentCount > 0 && (
+                <Chip
+                  icon={<AttachFile />}
+                  label={`${selectedTask.attachmentCount} attachment${
+                    selectedTask.attachmentCount > 1 ? "s" : ""
+                  }`}
+                  color="info"
+                  variant="outlined"
+                  size="small"
+                />
+              )}
+            {selectedTask.parentTaskId && (
+              <Chip
+                label="Subtask"
+                color="secondary"
+                variant="outlined"
+                size="small"
+              />
+            )}
+          </Box>
+        </Box>
+
+        {/* Timestamps */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Timestamps
+          </Typography>
+          <Box sx={{ pl: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+              <CalendarToday color="action" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                Created: {formatDate(selectedTask.createdAt)}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <AccessTime color="action" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                Updated: {formatDate(selectedTask.updatedAt)}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Task ID */}
+        <Box>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Task ID
+          </Typography>
+          <Typography variant="body2" sx={{ fontFamily: "monospace", pl: 2 }}>
+            {selectedTask.id}
+          </Typography>
+        </Box>
       </Box>
     </Paper>
   );

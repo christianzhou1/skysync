@@ -86,6 +86,23 @@ public class AttachmentController {
     }
 
 
+
+    @GetMapping("/")
+    @Operation(
+            summary = "List user attachments",
+            description = "Get all attachments for the current user"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Attachments retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public ResponseEntity<List<AttachmentInfo>> listForUser(
+            @RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.ok(attachmentService.listByUser(userId));
+    }
+
+
     @PostMapping("/{id}/attach/{taskId}")
     @Operation(
         summary = "Attach file to task",

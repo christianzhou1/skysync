@@ -117,6 +117,14 @@ public class AttachmentServiceImpl implements AttachmentService {
                 .toList();
     }
 
+    @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public List<AttachmentInfo> listByUser(UUID userId) {
+        return attachmentRepo.findByUserId(userId).stream()
+                .map(AttachmentMapper::toInfo)
+                .toList();
+    }
+
 
     @Override
     public AttachmentInfo attach(UUID attachmentId, UUID taskId, UUID userId) {

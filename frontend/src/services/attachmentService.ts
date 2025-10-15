@@ -77,6 +77,24 @@ class AttachmentService {
     }
   }
 
+  async getUserAttachments(userId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await attachmentApi.listForUser(userId);
+      return {
+        code: 200,
+        msg: "Success",
+        data: response.data,
+      };
+    } catch (error: any) {
+      console.error("Get user attachments error:", error);
+
+      return {
+        code: error.response?.status || 500,
+        msg: error.response?.data?.msg || "Failed to get user attachments.",
+      };
+    }
+  }
+
   /**
    * Attach existing file to task
    */

@@ -14,6 +14,8 @@ public interface AttachmentService {
 
     List<AttachmentInfo> listByTask(UUID taskId, UUID userId);
 
+    List<AttachmentInfo> listByUser(UUID userId);
+
     AttachmentInfo attach(UUID attachmentId, UUID taskId, UUID userId);
     AttachmentInfo detach(UUID attachmentId, UUID userId);
 

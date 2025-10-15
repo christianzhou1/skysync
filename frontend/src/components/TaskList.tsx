@@ -38,7 +38,7 @@ import { TreeItemProvider } from "@mui/x-tree-view/TreeItemProvider";
 
 // Simple tree data management like the Gmail demo
 
-interface Task {
+export interface Task {
   id: string;
   title: string;
   description: string;
@@ -144,6 +144,8 @@ const CustomTaskTreeItem = React.forwardRef<
     onToggleCompletion: (taskId: string, currentStatus: boolean) => void;
     onDelete: (taskId: string) => void;
     onCreateSubtask: (parentTaskId: string) => void;
+    onTaskSelect: (task: Task) => void;
+    isSelected: boolean;
   }
 >(
   (
@@ -157,6 +159,8 @@ const CustomTaskTreeItem = React.forwardRef<
       onToggleCompletion,
       onDelete,
       onCreateSubtask,
+      onTaskSelect,
+      isSelected,
     },
     ref
   ) => {
@@ -180,6 +184,7 @@ const CustomTaskTreeItem = React.forwardRef<
 
             <TreeItemLabel {...getLabelProps()}>
               <Box
+                onClick={() => onTaskSelect(task)}
                 sx={{
                   display: "flex",
                   alignItems: "center",
@@ -187,11 +192,17 @@ const CustomTaskTreeItem = React.forwardRef<
                   py: 0.5,
                   px: 1,
                   borderRadius: 1,
-                  backgroundColor: task.completed
+                  cursor: "pointer",
+                  backgroundColor: isSelected
+                    ? "primary.main"
+                    : task.completed
                     ? "action.hover"
                     : "transparent",
+                  color: isSelected ? "primary.contrastText" : "inherit",
                   "&:hover": {
-                    backgroundColor: "action.hover",
+                    backgroundColor: isSelected
+                      ? "primary.dark"
+                      : "action.hover",
                   },
                 }}
               >
@@ -273,7 +284,15 @@ const CustomTaskTreeItem = React.forwardRef<
   }
 );
 
-const TaskList: React.FC = () => {
+interface TaskListProps {
+  onTaskSelect: (task: Task) => void;
+  selectedTaskId?: string;
+}
+
+const TaskList: React.FC<TaskListProps> = ({
+  onTaskSelect,
+  selectedTaskId,
+}) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   // Tree data structure for MUI Tree View
   const [treeData, setTreeData] = useState<MUITreeItem[]>([]);
@@ -494,39 +513,62 @@ const TaskList: React.FC = () => {
   }
 
   return (
-    <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-
-
+    <Paper
+      elevation={3}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
       {tasks.length === 0 ? (
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          textAlign="center"
-          py={4}
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          No tasks found. Create your first task!
-        </Typography>
+          <Typography variant="body1" color="text.secondary" textAlign="center">
+            No tasks found. Create your first task!
+          </Typography>
+        </Box>
       ) : (
-        <Box sx={{ minHeight: 700, flexGrow: 1, border: 1, borderRadius: 2 }}>
-
-
-            <Box display="flex" px={0} justifyContent={"space-evenly"} gap={2} border={1}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddTask />}
-                onClick={openCreateTaskForm}
-              >
-                Create Task
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Refresh />}
-                onClick={fetchTasks}
-              >
-                Refresh
-              </Button>
-            </Box>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            display="flex"
+            px={0}
+            justifyContent={"space-evenly"}
+            gap={2}
+            mb={2}
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddTask />}
+              onClick={openCreateTaskForm}
+            >
+              Create Task
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={fetchTasks}
+            >
+              Refresh
+            </Button>
+          </Box>
           <RichTreeView
             items={treeData}
             expandedItems={expandedItems}
@@ -545,13 +587,14 @@ const TaskList: React.FC = () => {
                     onToggleCompletion={toggleTaskCompletion}
                     onDelete={deleteTask}
                     onCreateSubtask={openCreateSubtaskForm}
+                    onTaskSelect={onTaskSelect}
+                    isSelected={selectedTaskId === task.id}
                   />
                 );
               },
             }}
             sx={{
-              height: 700,
-              flexGrow: 1,
+              flex: 1,
               overflowY: "auto",
             }}
           />
