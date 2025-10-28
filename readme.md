@@ -293,7 +293,7 @@ docker image prune -f
 
 ## Features
 
-### ✅ Implemented
+### Implemented
 
 - **User Authentication** - JWT-based login and registration system
 - **Task Management** - Create, read, update, delete tasks with hierarchical support
@@ -305,7 +305,7 @@ docker image prune -f
 - **Type Safety** - TypeScript frontend with auto-generated API client
 - **Mobile Support** - Tab-based navigation and mobile-optimized interface
 
-### 🚀 Future Enhancements
+### Future Enhancements
 
 - **Real-time Updates** - WebSocket integration for live task updates
 - **Task Categories** - Organize tasks with tags and categories
