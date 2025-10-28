@@ -206,20 +206,21 @@ public class AttachmentServiceImpl implements AttachmentService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Attachment does not belong to user");
             }
 
-            // Remove all task relationships first
-            taskAttachmentRepo.deleteByAttachmentId(attachmentId);
-            
+            // Delete the attachment - Hibernate will cascade delete task attachments due to orphanRemoval = true
             try {
                 blobStorage.delete(a.getStoragePath());
             } catch (IOException io) {
                 log.warn("Failed to delete underlying blob for {}", attachmentId, io);
             }
+            
+            // Let Hibernate handle the cascade delete of task attachments
             attachmentRepo.delete(a);
         } catch (ResponseStatusException e) {
             throw e;
-        }  catch (Exception e) {
-            log.error("delete failed (attachmentId={})", attachmentId, e);
-            throw new ServiceException("Unexpected error");
+        } catch (Exception e) {
+            log.error("delete failed (attachmentId={}, userId={})", attachmentId, userId, e);
+            log.error("Exception details: {}", e.getMessage(), e);
+            throw new ServiceException("Unexpected error: " + e.getMessage());
         }
     }
 

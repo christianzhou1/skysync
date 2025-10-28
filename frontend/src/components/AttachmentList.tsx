@@ -19,6 +19,8 @@ import {
   DialogContent,
   DialogActions,
   LinearProgress,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   Download,
@@ -51,6 +53,9 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
   const [previewAttachment, setPreviewAttachment] =
     useState<AttachmentInfo | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
   const fetchAttachments = async () => {
     setLoading(true);
@@ -91,6 +96,17 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (25MB limit)
+      const maxSize = 25 * 1024 * 1024; // 25MB in bytes
+      if (file.size > maxSize) {
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        setError(
+          `File too large: ${fileSizeMB}MB. Maximum allowed size is 25MB.`
+        );
+        setSelectedFile(null);
+        return;
+      }
+
       setSelectedFile(file);
       setError(null);
     }
@@ -105,24 +121,71 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     setUploading(true);
     setError(null);
 
+    // Debug logging for mobile
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+    if (isMobile) {
+      console.log("📱 Mobile Upload Debug:", {
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     try {
       const userId = authService.getUserId();
       if (!userId) {
-        setError("User not authenticated");
+        const errorMsg = "User not authenticated";
+        if (isMobile) {
+          console.error("📱 Mobile Upload Error: No user ID found");
+        }
+        setError(errorMsg);
         return;
+      }
+
+      if (isMobile) {
+        console.log(
+          "📱 Mobile Upload Debug: Starting upload for user:",
+          userId
+        );
+        console.log(
+          "📱 Mobile Upload Debug: API Base URL:",
+          window.location.origin
+        );
       }
 
       const response = await attachmentService.uploadFile(selectedFile, userId);
 
       if (response.code === 200) {
+        if (isMobile) {
+          console.log("📱 Mobile Upload Debug: Upload successful!", response);
+        }
         // Refresh the attachment list
         await fetchAttachments();
         setUploadDialogOpen(false);
         setSelectedFile(null);
       } else {
+        if (isMobile) {
+          console.error(
+            "📱 Mobile Upload Error: Server returned error:",
+            response
+          );
+        }
         setError(response.msg);
       }
     } catch (err) {
+      if (isMobile) {
+        console.error("📱 Mobile Upload Error: Exception caught:", err);
+        console.error("📱 Mobile Upload Error: Error details:", {
+          name: err instanceof Error ? err.name : "Unknown",
+          message: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined,
+        });
+      }
       setError("Upload failed. Please try again.");
     } finally {
       setUploading(false);
@@ -168,29 +231,92 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
       return;
     }
 
-    if (
-      !window.confirm(
-        `Are you sure you want to delete "${attachment.fileName}"?`
-      )
-    ) {
+    // Enhanced mobile debugging for delete
+    const isMobileDevice =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+    if (isMobileDevice) {
+      console.log("📱 Mobile Delete Debug:", {
+        attachmentId: attachment.id,
+        fileName: attachment.fileName,
+        userId: userId,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Use a more reliable confirmation method for mobile
+    let confirmed = false;
+    try {
+      if (isMobileDevice) {
+        // For mobile devices, use a more reliable confirmation
+        confirmed = confirm(`Delete "${attachment.fileName}"?`);
+      } else {
+        confirmed = window.confirm(
+          `Are you sure you want to delete "${attachment.fileName}"?`
+        );
+      }
+    } catch (confirmError) {
+      if (isMobileDevice) {
+        console.error(
+          "📱 Mobile Delete Error: Confirm dialog failed:",
+          confirmError
+        );
+      }
+      // Fallback: proceed with deletion if confirm fails
+      confirmed = true;
+    }
+
+    if (!confirmed) {
+      if (isMobileDevice) {
+        console.log("📱 Mobile Delete Debug: User cancelled deletion");
+      }
       return;
     }
 
     try {
+      if (isMobileDevice) {
+        console.log(
+          "📱 Mobile Delete Debug: Calling attachmentService.deleteAttachment..."
+        );
+      }
+
       const response = await attachmentService.deleteAttachment(
         attachment.id,
         userId
       );
 
+      if (isMobileDevice) {
+        console.log("📱 Mobile Delete Debug: Delete response:", response);
+      }
+
       if (response.code === 200) {
+        if (isMobileDevice) {
+          console.log("📱 Mobile Delete Debug: Delete successful, updating UI");
+        }
         // Remove the attachment from the list
         setAttachments((prev) =>
           prev.filter((att) => att.id !== attachment.id)
         );
       } else {
+        if (isMobileDevice) {
+          console.error(
+            "📱 Mobile Delete Error: Server returned error:",
+            response
+          );
+        }
         setError(response.msg);
       }
     } catch (error) {
+      if (isMobileDevice) {
+        console.error("📱 Mobile Delete Error: Exception caught:", error);
+        console.error("📱 Mobile Delete Error: Error details:", {
+          name: error instanceof Error ? error.name : "Unknown",
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+      }
       setError("Failed to delete attachment");
     }
   };
@@ -253,7 +379,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     <Paper
       elevation={3}
       sx={{
-        p: 3,
+        p: isMobile ? 2 : 3,
         borderRadius: 2,
         height: "100%",
         display: "flex",
@@ -294,39 +420,62 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1,
+            gap: isMobile ? 0.5 : 1,
           }}
         >
-          {selectedTask && onClearFilter && (
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={<Clear />}
-              onClick={onClearFilter}
-              size="small"
-              sx={{
-                backgroundColor: "secondary.main",
-                "&:hover": {
-                  backgroundColor: "secondary.dark",
-                },
-              }}
+          {selectedTask &&
+            onClearFilter &&
+            (isMobile ? (
+              <IconButton
+                onClick={onClearFilter}
+                title="Clear Filter"
+                color="secondary"
+                sx={{ minHeight: 44, minWidth: 44 }}
+              >
+                <Clear />
+              </IconButton>
+            ) : (
+              <Button
+                variant="contained"
+                color="secondary"
+                startIcon={<Clear />}
+                onClick={onClearFilter}
+                size="small"
+                sx={{
+                  backgroundColor: "secondary.main",
+                  "&:hover": {
+                    backgroundColor: "secondary.dark",
+                  },
+                }}
+              >
+                Clear Filter
+              </Button>
+            ))}
+          {isMobile ? (
+            <IconButton
+              onClick={fetchAttachments}
+              title="Refresh"
+              color="primary"
+              sx={{ minHeight: 44, minWidth: 44 }}
             >
-              Clear Filter
+              <Refresh />
+            </IconButton>
+          ) : (
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={fetchAttachments}
+              size="small"
+            >
+              Refresh
             </Button>
           )}
-          <Button
-            variant="outlined"
-            startIcon={<Refresh />}
-            onClick={fetchAttachments}
-            size="small"
-          >
-            Refresh
-          </Button>
           <IconButton
             edge="end"
             onClick={handleUpload}
             title="Upload file"
             color="primary"
+            sx={{ minHeight: 44, minWidth: 44 }}
           >
             <Upload />
           </IconButton>
@@ -367,7 +516,9 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
               <ListItem
                 sx={{
                   px: 0,
-                  py: 2,
+                  py: isMobile ? 1 : 2,
+                  flexDirection: isMobile ? "column" : "row",
+                  alignItems: isMobile ? "stretch" : "center",
                   "&:hover": {
                     backgroundColor: "action.hover",
                     borderRadius: 1,
@@ -376,8 +527,18 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
               >
                 <ListItemText
                   primary={
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Typography
+                        variant={isMobile ? "body1" : "subtitle1"}
+                        sx={{ fontWeight: 500, flex: 1, minWidth: 0 }}
+                      >
                         {attachment.fileName || "Unknown file"}
                       </Typography>
                       {attachment.contentType && (
@@ -392,7 +553,11 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                   }
                   secondary={
                     <Box sx={{ mt: 0.5 }}>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant={isMobile ? "body2" : "body2"}
+                        color="text.secondary"
+                        sx={{ fontSize: isMobile ? "0.8rem" : "inherit" }}
+                      >
                         Size: {formatFileSize(attachment.sizeBytes)} • Created:{" "}
                         {formatDate(attachment.createdAt)}
                       </Typography>
@@ -400,7 +565,10 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                         <Typography
                           variant="body2"
                           color="text.secondary"
-                          sx={{ mt: 0.5, fontSize: "0.75rem" }}
+                          sx={{
+                            mt: 0.5,
+                            fontSize: isMobile ? "0.7rem" : "0.75rem",
+                          }}
                         >
                           Task ID: {attachment.taskId}
                         </Typography>
@@ -411,39 +579,53 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                 <Box
                   sx={{
                     display: "flex",
-                    flexGrow: 1,
                     alignItems: "center",
-                    justifyContent: "end",
-                    px: 2,
+                    justifyContent: isMobile ? "center" : "end",
+                    px: isMobile ? 0 : 2,
+                    py: isMobile ? 1 : 0,
                     border: 0,
+                    gap: isMobile ? 0.5 : 1,
                   }}
                 >
-                  <Box sx={{ display: "flex", gap: 1 }}>
-                    <IconButton
-                      edge="end"
-                      onClick={() => handlePreview(attachment)}
-                      title="Preview file"
-                      color="info"
-                    >
-                      <Visibility />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      onClick={() => handleDownload(attachment)}
-                      title="Download file"
-                      color="primary"
-                    >
-                      <Download />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      onClick={() => handleDelete(attachment)}
-                      title="Delete file"
-                      color="error"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Box>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handlePreview(attachment)}
+                    title="Preview file"
+                    color="info"
+                    size={isMobile ? "small" : "medium"}
+                    sx={{
+                      minHeight: isMobile ? 36 : "auto",
+                      minWidth: isMobile ? 36 : "auto",
+                    }}
+                  >
+                    <Visibility />
+                  </IconButton>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handleDownload(attachment)}
+                    title="Download file"
+                    color="primary"
+                    size={isMobile ? "small" : "medium"}
+                    sx={{
+                      minHeight: isMobile ? 36 : "auto",
+                      minWidth: isMobile ? 36 : "auto",
+                    }}
+                  >
+                    <Download />
+                  </IconButton>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handleDelete(attachment)}
+                    title="Delete file"
+                    color="error"
+                    size={isMobile ? "small" : "medium"}
+                    sx={{
+                      minHeight: isMobile ? 36 : "auto",
+                      minWidth: isMobile ? 36 : "auto",
+                    }}
+                  >
+                    <Delete />
+                  </IconButton>
                 </Box>
               </ListItem>
               {index < getFilteredAttachments().length - 1 && <Divider />}

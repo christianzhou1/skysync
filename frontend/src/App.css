@@ -20,25 +20,92 @@ body {
 }
 
 /* Mobile-specific improvements */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .app-main {
-    padding: 1rem;
+    padding: 0.5rem;
   }
 
   .login-form {
-    padding: 1.5rem;
-    margin: 1rem;
-  }
-
-  .task-list {
     padding: 1rem;
     margin: 0.5rem;
   }
 
+  .task-list {
+    padding: 0.5rem;
+    margin: 0.25rem;
+  }
+
   /* Ensure touch targets are large enough */
   button,
-  .task-item {
+  .task-item,
+  .MuiIconButton-root,
+  .MuiButton-root {
     min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Improve mobile scrolling */
+  .MuiPaper-root {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better spacing for mobile */
+  .MuiBox-root {
+    gap: 0.5rem;
+  }
+
+  /* Mobile-friendly tabs */
+  .MuiTabs-root {
+    min-height: 48px;
+  }
+
+  .MuiTab-root {
+    min-height: 48px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+  }
+
+  /* Mobile tree view improvements */
+  .MuiTreeView-root {
+    padding: 0.5rem;
+  }
+
+  /* Mobile dialog improvements */
+  .MuiDialog-paper {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+
+  /* Mobile list improvements */
+  .MuiListItem-root {
+    padding: 0.5rem;
+  }
+
+  /* Mobile chip improvements */
+  .MuiChip-root {
+    font-size: 0.75rem;
+    height: 24px;
+  }
+
+  /* Mobile typography adjustments */
+  .MuiTypography-h5 {
+    font-size: 1.25rem;
+  }
+
+  .MuiTypography-h6 {
+    font-size: 1.125rem;
+  }
+
+  .MuiTypography-body1 {
+    font-size: 0.875rem;
+  }
+
+  .MuiTypography-body2 {
+    font-size: 0.8rem;
+  }
+
+  .MuiTypography-caption {
+    font-size: 0.7rem;
   }
 }
 

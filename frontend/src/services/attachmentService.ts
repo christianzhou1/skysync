@@ -11,19 +11,94 @@ class AttachmentService {
    * Upload file without linking to task
    */
   async uploadFile(file: File, userId: string): Promise<ApiResponse<any>> {
+    // Enhanced mobile debugging
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+    if (isMobile) {
+      console.log("📱 AttachmentService Debug - uploadFile:", {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        userId: userId,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        apiBaseUrl: window.location.origin,
+      });
+    }
+
     try {
+      if (isMobile) {
+        console.log(
+          "📱 AttachmentService Debug - Calling attachmentApi.upload..."
+        );
+        console.log("📱 AttachmentService Debug - Request details:", {
+          url: `${window.location.origin}/api/attachments/${userId}`,
+          method: "POST",
+          contentType: "multipart/form-data",
+          fileSize: file.size,
+          fileName: file.name,
+          fileType: file.type,
+          userId: userId,
+        });
+      }
+
       const response = await attachmentApi.upload(userId, file);
+
+      if (isMobile) {
+        console.log(
+          "📱 AttachmentService Debug - Upload API response:",
+          response
+        );
+      }
+
       return {
         code: 200,
         msg: "File uploaded successfully",
         data: response.data,
       };
     } catch (error: any) {
+      if (isMobile) {
+        console.error("📱 AttachmentService Debug - Upload error:", error);
+        console.error("📱 AttachmentService Debug - Error details:", {
+          name: error.name,
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            headers: error.config?.headers,
+          },
+        });
+      }
       console.error("Upload file error:", error);
 
+      // Enhanced error message handling
+      let errorMessage = "Failed to upload file.";
+      let errorCode = error.response?.status || 500;
+
+      if (error.response?.data) {
+        if (typeof error.response.data === "string") {
+          errorMessage = error.response.data;
+        } else if (error.response.data.msg) {
+          errorMessage = error.response.data.msg;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+      }
+
+      // Special handling for 413 errors
+      if (errorCode === 413) {
+        errorMessage = "File too large. Maximum allowed size is 25MB.";
+      }
+
       return {
-        code: error.response?.status || 500,
-        msg: error.response?.data?.msg || "Failed to upload file.",
+        code: errorCode,
+        msg: errorMessage,
       };
     }
   }
@@ -177,13 +252,55 @@ class AttachmentService {
     attachmentId: string,
     userId: string
   ): Promise<ApiResponse> {
+    // Enhanced mobile debugging
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+    if (isMobile) {
+      console.log("📱 AttachmentService Debug - deleteAttachment:", {
+        attachmentId: attachmentId,
+        userId: userId,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        apiBaseUrl: window.location.origin,
+      });
+    }
+
     try {
+      if (isMobile) {
+        console.log(
+          "📱 AttachmentService Debug - Calling attachmentApi._delete..."
+        );
+      }
+
       await attachmentApi._delete(attachmentId, userId);
+
+      if (isMobile) {
+        console.log("📱 AttachmentService Debug - Delete API call successful");
+      }
+
       return {
         code: 200,
         msg: "Attachment deleted successfully",
       };
     } catch (error: any) {
+      if (isMobile) {
+        console.error("📱 AttachmentService Debug - Delete error:", error);
+        console.error("📱 AttachmentService Debug - Error details:", {
+          name: error.name,
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            headers: error.config?.headers,
+          },
+        });
+      }
       console.error("Delete attachment error:", error);
 
       return {

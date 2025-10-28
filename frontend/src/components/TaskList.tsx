@@ -14,6 +14,8 @@ import {
   Typography,
   IconButton,
   Chip,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   AddTask,
@@ -146,6 +148,7 @@ const CustomTaskTreeItem = React.forwardRef<
     onCreateSubtask: (parentTaskId: string) => void;
     onTaskSelect: (task: Task) => void;
     isSelected: boolean;
+    isMobile: boolean;
   }
 >(
   (
@@ -161,6 +164,7 @@ const CustomTaskTreeItem = React.forwardRef<
       onCreateSubtask,
       onTaskSelect,
       isSelected,
+      isMobile,
     },
     ref
   ) => {
@@ -187,9 +191,10 @@ const CustomTaskTreeItem = React.forwardRef<
                 onClick={() => onTaskSelect(task)}
                 sx={{
                   display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  py: 0.5,
+                  flexDirection: isMobile ? "column" : "row",
+                  alignItems: isMobile ? "stretch" : "center",
+                  gap: isMobile ? 1 : 1,
+                  py: isMobile ? 1 : 0.5,
                   px: 1,
                   borderRadius: 1,
                   cursor: "pointer",
@@ -201,6 +206,7 @@ const CustomTaskTreeItem = React.forwardRef<
                   color: isSelected ? "primary.contrastText" : "inherit",
                   border: isSelected ? "2px solid" : "2px solid transparent",
                   borderColor: isSelected ? "primary.main" : "transparent",
+                  minHeight: isMobile ? 44 : "auto",
                   "&:hover": {
                     backgroundColor: isSelected
                       ? "primary.dark"
@@ -212,92 +218,226 @@ const CustomTaskTreeItem = React.forwardRef<
                   },
                 }}
               >
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleCompletion(task.id, task.completed);
+                {/* Row 1: Completion checkbox + task title */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    flex: 1,
+                    minHeight: isMobile ? 32 : "auto",
                   }}
-                  color={task.completed ? "warning" : "success"}
-                  size="small"
                 >
-                  {task.completed ? <RadioButtonUnchecked /> : <CheckCircle />}
-                </IconButton>
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleCompletion(task.id, task.completed);
+                    }}
+                    color={task.completed ? "warning" : "success"}
+                    size={isMobile ? "medium" : "small"}
+                    sx={{
+                      minHeight: isMobile ? 44 : "auto",
+                      minWidth: isMobile ? 44 : "auto",
+                    }}
+                  >
+                    {task.completed ? (
+                      <RadioButtonUnchecked />
+                    ) : (
+                      <CheckCircle />
+                    )}
+                  </IconButton>
 
-                <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
                   <Typography
-                    variant="body2"
+                    variant={isMobile ? "body1" : "body2"}
                     sx={{
                       textDecoration: task.completed ? "line-through" : "none",
                       color: task.completed ? "text.secondary" : "text.primary",
+                      flex: 1,
+                      fontWeight: isMobile ? 500 : "normal",
                     }}
                   >
                     {task.title}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontSize: "0.75rem",
-                      color: "text.secondary",
-                      mt: 0.25,
-                    }}
-                  >
-                    ID: {task.id}
-                  </Typography>
                 </Box>
 
-                {task.subtaskCount != null && task.subtaskCount > 0 && (
-                  <Chip
-                    label={`${task.subtaskCount} subtask${
-                      task.subtaskCount > 1 ? "s" : ""
-                    }`}
-                    color="info"
-                    size="small"
-                    variant="outlined"
-                  />
+                {/* Row 2: Task ID, chips, and action buttons (mobile only) */}
+                {isMobile && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 0.5,
+                      ml: 5, // Align with title text
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "text.secondary",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      ID: {task.id}
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 0.5,
+                        mb: 0.5,
+                      }}
+                    >
+                      {task.subtaskCount != null && task.subtaskCount > 0 && (
+                        <Chip
+                          label={`${task.subtaskCount} subtask${
+                            task.subtaskCount > 1 ? "s" : ""
+                          }`}
+                          color="info"
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
+
+                      {task.attachmentCount != null &&
+                        task.attachmentCount > 0 && (
+                          <Chip
+                            label={`${task.attachmentCount} attachment${
+                              task.attachmentCount > 1 ? "s" : ""
+                            }`}
+                            color="info"
+                            size="small"
+                            variant="outlined"
+                          />
+                        )}
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: 0.5 }}>
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCreateSubtask(task.id);
+                        }}
+                        color="primary"
+                        title="Add Subtask"
+                        size="small"
+                        sx={{ minHeight: 36, minWidth: 36 }}
+                      >
+                        <SubdirectoryArrowRight />
+                      </IconButton>
+
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(task.id);
+                        }}
+                        color="error"
+                        size="small"
+                        className="delete-button"
+                        sx={{
+                          opacity: isSelected ? 1 : 0,
+                          transition: "opacity 0.2s ease-in-out",
+                          minHeight: 36,
+                          minWidth: 36,
+                          "&:hover": {
+                            backgroundColor: "error.main",
+                            color: "error.contrastText",
+                          },
+                        }}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Box>
+                  </Box>
                 )}
 
-                {task.attachmentCount != null && task.attachmentCount > 0 && (
-                  <Chip
-                    label={`${task.attachmentCount} attachment${
-                      task.attachmentCount > 1 ? "s" : ""
-                    }`}
-                    color="info"
-                    size="small"
-                    variant="outlined"
-                  />
+                {/* Desktop layout - keep original horizontal layout */}
+                {!isMobile && (
+                  <>
+                    <Box
+                      sx={{ flex: 1, display: "flex", flexDirection: "column" }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          textDecoration: task.completed
+                            ? "line-through"
+                            : "none",
+                          color: task.completed
+                            ? "text.secondary"
+                            : "text.primary",
+                        }}
+                      >
+                        {task.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                          mt: 0.25,
+                        }}
+                      >
+                        ID: {task.id}
+                      </Typography>
+                    </Box>
+
+                    {task.subtaskCount != null && task.subtaskCount > 0 && (
+                      <Chip
+                        label={`${task.subtaskCount} subtask${
+                          task.subtaskCount > 1 ? "s" : ""
+                        }`}
+                        color="info"
+                        size="small"
+                        variant="outlined"
+                      />
+                    )}
+
+                    {task.attachmentCount != null &&
+                      task.attachmentCount > 0 && (
+                        <Chip
+                          label={`${task.attachmentCount} attachment${
+                            task.attachmentCount > 1 ? "s" : ""
+                          }`}
+                          color="info"
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
+
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onCreateSubtask(task.id);
+                      }}
+                      color="primary"
+                      title="Add Subtask"
+                      size="small"
+                    >
+                      <SubdirectoryArrowRight />
+                    </IconButton>
+
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(task.id);
+                      }}
+                      color="error"
+                      size="small"
+                      className="delete-button"
+                      sx={{
+                        opacity: isSelected ? 1 : 0,
+                        transition: "opacity 0.2s ease-in-out",
+                        "&:hover": {
+                          backgroundColor: "error.main",
+                          color: "error.contrastText",
+                        },
+                      }}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </>
                 )}
-
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCreateSubtask(task.id);
-                  }}
-                  color="primary"
-                  title="Add Subtask"
-                  size="small"
-                >
-                  <SubdirectoryArrowRight />
-                </IconButton>
-
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(task.id);
-                  }}
-                  color="error"
-                  size="small"
-                  className="delete-button"
-                  sx={{
-                    opacity: isSelected ? 1 : 0,
-                    transition: "opacity 0.2s ease-in-out",
-                    "&:hover": {
-                      backgroundColor: "error.main",
-                      color: "error.contrastText",
-                    },
-                  }}
-                >
-                  <Delete />
-                </IconButton>
               </Box>
             </TreeItemLabel>
           </TreeItemContent>
@@ -329,6 +469,9 @@ const TaskList: React.FC<TaskListProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
   // state variables for create task
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -569,25 +712,48 @@ const TaskList: React.FC<TaskListProps> = ({
         <Box
           display="flex"
           px={0}
-          justifyContent={"space-evenly"}
-          gap={2}
+          justifyContent={isMobile ? "center" : "space-evenly"}
+          gap={isMobile ? 1 : 2}
           mb={2}
         >
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddTask />}
-            onClick={openCreateTaskForm}
-          >
-            Create Task
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Refresh />}
-            onClick={fetchTasks}
-          >
-            Refresh
-          </Button>
+          {isMobile ? (
+            <>
+              <IconButton
+                color="primary"
+                onClick={openCreateTaskForm}
+                title="Create Task"
+                sx={{ minHeight: 44, minWidth: 44 }}
+              >
+                <AddTask />
+              </IconButton>
+              <IconButton
+                color="primary"
+                onClick={fetchTasks}
+                title="Refresh"
+                sx={{ minHeight: 44, minWidth: 44 }}
+              >
+                <Refresh />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddTask />}
+                onClick={openCreateTaskForm}
+              >
+                Create Task
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Refresh />}
+                onClick={fetchTasks}
+              >
+                Refresh
+              </Button>
+            </>
+          )}
         </Box>
 
         {tasks.length === 0 ? (
@@ -650,6 +816,7 @@ const TaskList: React.FC<TaskListProps> = ({
                       onCreateSubtask={openCreateSubtaskForm}
                       onTaskSelect={onTaskSelect}
                       isSelected={selectedTaskId === task.id}
+                      isMobile={isMobile}
                     />
                   );
                 },

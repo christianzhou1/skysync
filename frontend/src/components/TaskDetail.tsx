@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Paper, Typography, Box, Chip, Divider, Button } from "@mui/material";
+import {
+  Paper,
+  Typography,
+  Box,
+  Chip,
+  Divider,
+  Button,
+  IconButton,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import {
   CheckCircle,
   RadioButtonUnchecked,
@@ -19,6 +29,9 @@ interface TaskDetailProps {
 
 const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
   const [attachDialogOpen, setAttachDialogOpen] = useState(false);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -71,7 +84,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
     <Paper
       elevation={3}
       sx={{
-        p: 3,
+        p: isMobile ? 2 : 3,
         height: "100%",
         borderRadius: 2,
         display: "flex",
@@ -80,7 +93,11 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-        <Typography variant="h5" component="h2" sx={{ flex: 1 }}>
+        <Typography
+          variant={isMobile ? "h6" : "h5"}
+          component="h2"
+          sx={{ flex: 1 }}
+        >
           Task Detail
         </Typography>
         <Chip
@@ -98,7 +115,11 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
       <Box sx={{ flex: 1, overflow: "auto" }}>
         {/* Task Title */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+          <Typography
+            variant={isMobile ? "h6" : "h6"}
+            gutterBottom
+            sx={{ fontWeight: "bold" }}
+          >
             {selectedTask.title}
           </Typography>
         </Box>
@@ -164,19 +185,35 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
             Attachments
           </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<Link />}
-            onClick={() => setAttachDialogOpen(true)}
-            size="small"
-            sx={{ mb: 1 }}
-          >
-            Attach Existing Files
-          </Button>
+          {isMobile ? (
+            <IconButton
+              onClick={() => setAttachDialogOpen(true)}
+              title="Attach Existing Files"
+              sx={{
+                mb: 1,
+                minHeight: 44,
+                minWidth: 44,
+                border: 1,
+                borderColor: "divider",
+              }}
+            >
+              <Link />
+            </IconButton>
+          ) : (
+            <Button
+              variant="outlined"
+              startIcon={<Link />}
+              onClick={() => setAttachDialogOpen(true)}
+              size="small"
+              sx={{ mb: 1 }}
+            >
+              Attach Existing Files
+            </Button>
+          )}
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ fontSize: "0.75rem" }}
+            sx={{ fontSize: isMobile ? "0.8rem" : "0.75rem" }}
           >
             Link existing files from your attachment library to this task.
           </Typography>

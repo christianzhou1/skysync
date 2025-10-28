@@ -4,7 +4,7 @@ import type { Task } from "./TaskList.tsx";
 import TaskDetail from "./TaskDetail.tsx";
 import { ResizeHandle } from "./ResizeHandle.tsx";
 import { Panel, PanelGroup } from "react-resizable-panels";
-import { Box } from "@mui/material";
+import { Box, Tabs, Tab, useMediaQuery, useTheme } from "@mui/material";
 import AttachmentList from "./AttachmentList.tsx";
 
 const Dashboard: React.FC = () => {
@@ -12,6 +12,10 @@ const Dashboard: React.FC = () => {
   const [attachmentFilterTask, setAttachmentFilterTask] = useState<Task | null>(
     null
   );
+  const [activeTab, setActiveTab] = useState(0);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
   const handleTaskSelect = (task: Task) => {
     // If clicking the same task, deselect it
@@ -32,6 +36,55 @@ const Dashboard: React.FC = () => {
     setSelectedTask(null);
     setAttachmentFilterTask(null);
   };
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          sx={{
+            borderBottom: 1,
+            borderColor: "divider",
+            backgroundColor: "background.paper",
+          }}
+        >
+          <Tab label="Tasks" />
+          <Tab label="Detail" />
+          <Tab label="Attachments" />
+        </Tabs>
+
+        <Box sx={{ flex: 1, overflow: "hidden" }}>
+          {activeTab === 0 && (
+            <TaskList
+              onTaskSelect={handleTaskSelect}
+              onTaskDeselect={handleTaskDeselect}
+              selectedTaskId={selectedTask?.id}
+            />
+          )}
+          {activeTab === 1 && <TaskDetail selectedTask={selectedTask} />}
+          {activeTab === 2 && (
+            <AttachmentList
+              selectedTask={attachmentFilterTask}
+              onClearFilter={handleClearAttachmentFilter}
+            />
+          )}
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box
