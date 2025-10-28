@@ -1,5 +1,5 @@
 ---
-# Full-Stack Todo Application
+# The Todo Project
 
 A modern **full-stack Todo application** built with **Spring Boot**, **React**, **PostgreSQL**, and **Docker Compose**.
 Features user authentication, task management, file attachments, and a responsive web interface. Database schema is versioned using **Flyway**.

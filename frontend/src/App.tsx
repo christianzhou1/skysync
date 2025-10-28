@@ -106,7 +106,7 @@ function App() {
         <AppBar position="static" sx={{ backgroundColor: "background.paper" }}>
           <Toolbar>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              Todo App
+              The Todo Project
             </Typography>
             {isAuthenticated && (
               <Button

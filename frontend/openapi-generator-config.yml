@@ -5,7 +5,7 @@ additionalProperties:
   typescriptThreePlus: true
   supportsES6: true
   withInterfaces: true
-  npmName: @todo/api-client
+  npmName: @the-todo-project/api-client
   npmVersion: 1.0.0
   modelPropertyNaming: camelCase
   enumPropertyNaming: UPPERCASE
