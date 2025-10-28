@@ -27,8 +27,9 @@ Features user authentication, task management, file attachments, and a responsiv
 - **Material-UI (MUI)** for UI components
 - **Vite** for build tooling
 - **Axios** for API communication
-- **React Resizable Panels** for layout
+- **React Resizable Panels** for desktop layout
 - **OpenAPI Generator** for type-safe API client
+- **Mobile-responsive design** with tab-based navigation
 
 ### Infrastructure
 
@@ -128,36 +129,20 @@ docker volume rm todo_postgres-data
 
 ## Database & Flyway Migrations
 
-Migrations are located in `src/main/resources/db/migration`.
+Migrations are located in `src/main/resources/db/migration` and include:
 
-### V1\_\_initial_schema.sql
+- **V1-V3**: Initial task schema and column updates
+- **V4-V6**: Attachment system implementation
+- **V7-V8**: User authentication system
+- **V9-V11**: Many-to-many task-attachment relationships
+- **V12-V14**: Performance indexes, parent tasks, and display ordering
 
-Defines the `task` table:
+### Key Tables
 
-- `id uuid PRIMARY KEY`
-- `task_name varchar(255) NOT NULL`
-- `task_desc text`
-- `created_at timestamptz NOT NULL DEFAULT now()`
-- `is_completed boolean NOT NULL DEFAULT false`
-- `is_delete boolean NOT NULL DEFAULT false`
-
-Optional extensions for DB-side UUIDs:
-
-- `uuid-ossp` for `uuid_generate_v4()`
-- `pgcrypto` for `gen_random_uuid()`
-
-Helpful indexes are created on `created_at`, `is_delete`, and `is_completed`.
-
-### V2\_\_seed_mock.sql
-
-Inserts a starter record:
-
-```sql
-INSERT INTO task (id, task_name, task_desc, is_completed, is_delete)
-VALUES (gen_random_uuid(), 'First task', 'Hello, world', false, false);
-```
-
-This requires the `pgcrypto` extension if using `gen_random_uuid()`.
+- **`task`**: Main task table with hierarchical support
+- **`attachment`**: File attachment storage
+- **`users`**: User authentication
+- **`task_attachment`**: Many-to-many relationship between tasks and attachments
 
 ### Flyway Setup
 
@@ -174,93 +159,22 @@ On startup, Flyway automatically applies migrations in order.
 
 ### Authentication
 
-#### Login
-
-```bash
-POST /auth/login
-Content-Type: application/json
-
-{
-  "username": "your-username",
-  "password": "your-password"
-}
-```
-
-#### Get Current User
-
-```bash
-GET /auth/me
-Authorization: Bearer <jwt-token>
-```
+- `POST /auth/login` - User login
+- `GET /auth/me` - Get current user info
 
 ### Task Management
 
-#### List Tasks
-
-```bash
-GET /tasks
-X-User-Id: <user-uuid>
-Authorization: Bearer <jwt-token>
-```
-
-#### Create Task
-
-```bash
-POST /tasks
-Content-Type: application/json
-X-User-Id: <user-uuid>
-Authorization: Bearer <jwt-token>
-
-{
-  "title": "New Task",
-  "description": "Task description",
-  "parentTaskId": null
-}
-```
-
-#### Get Task Detail
-
-```bash
-GET /tasks/id/{taskId}/detail
-X-User-Id: <user-uuid>
-Authorization: Bearer <jwt-token>
-```
-
-#### Update Task
-
-```bash
-PUT /tasks/id/{taskId}
-Content-Type: application/json
-X-User-Id: <user-uuid>
-Authorization: Bearer <jwt-token>
-
-{
-  "title": "Updated Task",
-  "description": "Updated description",
-  "completed": true
-}
-```
+- `GET /tasks` - List all tasks
+- `POST /tasks` - Create new task
+- `GET /tasks/id/{taskId}/detail` - Get task details
+- `PUT /tasks/id/{taskId}` - Update task
+- `DELETE /tasks/id/{taskId}` - Delete task
 
 ### File Attachments
 
-#### Upload File
-
-```bash
-POST /attachments/upload
-Content-Type: multipart/form-data
-X-User-Id: <user-uuid>
-Authorization: Bearer <jwt-token>
-
-file: <file-data>
-```
-
-#### Download File
-
-```bash
-GET /attachments/{attachmentId}/download
-X-User-Id: <user-uuid>
-Authorization: Bearer <jwt-token>
-```
+- `POST /attachments/upload` - Upload file
+- `GET /attachments/{attachmentId}/download` - Download file
+- `DELETE /attachments/{attachmentId}` - Delete attachment
 
 ### API Documentation
 
@@ -365,6 +279,8 @@ docker image prune -f
 - Use `npm run generate:api:local` for builds when backend is not running
 - TypeScript is used for type safety
 - React 19 with modern hooks and functional components
+- Mobile-responsive design with conditional rendering based on screen size
+- Tab-based navigation for mobile/tablet devices
 
 ### API Client Generation
 
@@ -379,14 +295,15 @@ docker image prune -f
 
 ### ✅ Implemented
 
-- **User Authentication** - JWT-based login system
-- **Task Management** - Create, read, update, delete tasks
-- **File Attachments** - Upload and download files for tasks
-- **Responsive UI** - Modern React frontend with Material-UI
+- **User Authentication** - JWT-based login and registration system
+- **Task Management** - Create, read, update, delete tasks with hierarchical support
+- **File Attachments** - Upload, download, and delete files for tasks (up to 25MB)
+- **Responsive UI** - Modern React frontend with Material-UI, optimized for mobile
 - **API Documentation** - OpenAPI/Swagger integration
-- **Database Migrations** - Flyway schema versioning
-- **Production Deployment** - Docker containerization
-- **Type Safety** - TypeScript frontend with generated API client
+- **Database Migrations** - Flyway schema versioning with 14+ migrations
+- **Production Deployment** - Docker containerization with Nginx reverse proxy
+- **Type Safety** - TypeScript frontend with auto-generated API client
+- **Mobile Support** - Tab-based navigation and mobile-optimized interface
 
 ### 🚀 Future Enhancements
 
@@ -415,7 +332,7 @@ todo/
 │   ├── service/                     # Business logic
 │   └── storage/                     # File storage services
 ├── src/main/resources/
-│   ├── db/migration/                # Flyway migrations
+│   ├── db/migration/                # Flyway migrations (14+ files)
 │   └── application.yaml             # Application configuration
 ├── frontend/                        # React frontend
 │   ├── src/
@@ -425,12 +342,14 @@ todo/
 │   │   └── config/                  # Frontend configuration
 │   ├── package.json                 # Frontend dependencies
 │   └── vite.config.ts               # Vite configuration
-├── docker-compose.prod.yml          # Docker setup for all environments
+├── docker-compose.prod.yml          # Docker setup for production
 ├── Dockerfile                       # Backend Docker image
 ├── Dockerfile.jar                   # JAR-based Docker image
 ├── frontend/Dockerfile.dev          # Frontend development Docker image
 ├── nginx.conf                       # Nginx configuration
-├── deploy-production.sh             # Deployment script
+├── nginx-ssl.conf                   # Nginx SSL configuration
+├── deploy-production.sh             # Bash deployment script
+├── deploy-production.ps1            # PowerShell deployment script
 └── README.md                        # This file
 ```
 
@@ -451,19 +370,6 @@ todo/
 
 This application can be deployed to a VPS using Docker Compose with the following architecture:
 
-### Architecture
-
-```
-┌─────────────────────────────────────────┐
-│            VPS (your-vps-ip)            │
-│  ┌─────────┐ ┌─────────┐ ┌─────────────┐│
-│  │ Frontend│ │ Backend │ │ PostgreSQL  ││
-│  │ (Nginx) │ │(Spring) │ │     17      ││
-│  │  :80    │ │ :8080   │ │   :5432     ││
-│  └─────────┘ └─────────┘ └─────────────┘│
-└─────────────────────────────────────────┘
-```
-
 ### Services
 
 - **PostgreSQL 17**: Database (internal network only)
@@ -473,7 +379,7 @@ This application can be deployed to a VPS using Docker Compose with the followin
 
 ### Prerequisites
 
-1. **VPS with Ubuntu 24.04** (1GB RAM, 25GB disk minimum)
+1. **VPS with Ubuntu 24.04**
 2. **Docker and Docker Compose** installed
 3. **SSH access** to the VPS
 4. **Environment variables** configured in `.env.production`
