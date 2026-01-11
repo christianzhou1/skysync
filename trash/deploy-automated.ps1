@@ -67,12 +67,24 @@ if ($LASTEXITCODE -ne 0) {
 
 if (-not $SkipFrontendBuild) {
     Write-Step "2. Building frontend..."
-    Write-Host "⚠️  Make sure your backend is running on http://localhost:8080" -ForegroundColor Yellow
-    Write-Host "   To start: .\mvnw.cmd spring-boot:run" -ForegroundColor Yellow
+    Write-Host "⚠️  Frontend build requires backend to be running on http://localhost:8080" -ForegroundColor Yellow
+    Write-Host "   To start backend: .\start.ps1" -ForegroundColor Yellow
+    Write-Host "   Or use: .\deploy-automated.ps1 -SkipFrontendBuild (if frontend is already built)" -ForegroundColor Yellow
     $response = Read-Host "Press Enter when backend is ready (or 's' to skip frontend build)"
     if ($response -eq 's') {
         Write-Warning "Skipping frontend build..."
+        $SkipFrontendBuild = $true
     } else {
+        # Verify backend is running
+        try {
+            $healthCheck = Invoke-WebRequest -Uri "http://localhost:8080/api/actuator/health" -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop
+            Write-Status "Backend is running and healthy"
+        } catch {
+            Write-Error "Backend is not responding at http://localhost:8080/api/actuator/health"
+            Write-Error "Please start the backend first using: .\start.ps1"
+            exit 1
+        }
+        
         Set-Location frontend
         Write-Status "Building frontend for production..."
         & npm run build
@@ -85,6 +97,17 @@ if (-not $SkipFrontendBuild) {
     }
 } else {
     Write-Status "Skipping frontend build (using existing dist)..."
+    if (-not (Test-Path "frontend/dist/index.html")) {
+        Write-Warning "Frontend dist not found! Building frontend anyway..."
+        Set-Location frontend
+        & npm run build
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Frontend build failed!"
+            Set-Location ..
+            exit 1
+        }
+        Set-Location ..
+    }
 }
 
 Write-Step "3. Creating deployment package..."
