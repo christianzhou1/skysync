@@ -195,7 +195,7 @@ const CustomTaskTreeItem = React.forwardRef<
                   alignItems: isMobile ? "stretch" : "center",
                   gap: isMobile ? 1 : 1,
                   py: isMobile ? 1 : 0.5,
-                  px: 1,
+                  px: 0,
                   borderRadius: 1,
                   cursor: "pointer",
                   backgroundColor: isSelected
@@ -218,47 +218,54 @@ const CustomTaskTreeItem = React.forwardRef<
                   },
                 }}
               >
-                {/* Row 1: Completion checkbox + task title */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    flex: 1,
-                    minHeight: isMobile ? 32 : "auto",
-                  }}
-                >
-                  <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleCompletion(task.id, task.completed);
-                    }}
-                    color={task.completed ? "warning" : "success"}
-                    size={isMobile ? "medium" : "small"}
+                {/* Row 1: Completion checkbox + task title (mobile only) */}
+                {isMobile && (
+                  <Box
                     sx={{
-                      minHeight: isMobile ? 44 : "auto",
-                      minWidth: isMobile ? 44 : "auto",
-                    }}
-                  >
-                    {task.completed ? (
-                      <RadioButtonUnchecked />
-                    ) : (
-                      <CheckCircle />
-                    )}
-                  </IconButton>
-
-                  <Typography
-                    variant={isMobile ? "body1" : "body2"}
-                    sx={{
-                      textDecoration: task.completed ? "line-through" : "none",
-                      color: task.completed ? "text.secondary" : "text.primary",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
                       flex: 1,
-                      fontWeight: isMobile ? 500 : "normal",
+                      minHeight: 32,
                     }}
                   >
-                    {task.title}
-                  </Typography>
-                </Box>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleCompletion(task.id, task.completed);
+                      }}
+                      color={task.completed ? "warning" : "success"}
+                      size="medium"
+                      sx={{
+                        minHeight: 44,
+                        minWidth: 44,
+                      }}
+                    >
+                      {task.completed ? (
+                        <RadioButtonUnchecked />
+                      ) : (
+                        <CheckCircle />
+                      )}
+                    </IconButton>
+
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        textDecoration: task.completed
+                          ? "line-through"
+                          : "none",
+                        color: task.completed
+                          ? "text.secondary"
+                          : "text.primary",
+                        flex: 1,
+                        fontWeight: 500,
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {task.title}
+                    </Typography>
+                  </Box>
+                )}
 
                 {/* Row 2: Task ID, chips, and action buttons (mobile only) */}
                 {isMobile && (
@@ -354,6 +361,21 @@ const CustomTaskTreeItem = React.forwardRef<
                 {/* Desktop layout - keep original horizontal layout */}
                 {!isMobile && (
                   <>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleCompletion(task.id, task.completed);
+                      }}
+                      color={task.completed ? "warning" : "success"}
+                      size="small"
+                    >
+                      {task.completed ? (
+                        <RadioButtonUnchecked />
+                      ) : (
+                        <CheckCircle />
+                      )}
+                    </IconButton>
+
                     <Box
                       sx={{ flex: 1, display: "flex", flexDirection: "column" }}
                     >
@@ -687,7 +709,7 @@ const TaskList: React.FC<TaskListProps> = ({
     <Paper
       elevation={3}
       sx={{
-        p: 3,
+        p: 1,
         borderRadius: 2,
         height: "100%",
         display: "flex",
@@ -779,7 +801,7 @@ const TaskList: React.FC<TaskListProps> = ({
               <Box
                 sx={{
                   mb: 2,
-                  p: 1,
+                  p: 0,
                   backgroundColor: "primary.dark",
                   color: "primary.contrastText",
                   borderRadius: 1,
@@ -788,11 +810,11 @@ const TaskList: React.FC<TaskListProps> = ({
                   borderColor: "primary.main",
                 }}
               >
-                <Typography variant="body2">
+                <Typography sx={{ wordBreak: "break-word" }} variant="body2">
                   Selected: {tasks.find((t) => t.id === selectedTaskId)?.title}
                 </Typography>
-                <Typography variant="caption">
-                  Click the task again or click empty space to deselect
+                <Typography sx={{ wordBreak: "break-word" }} variant="caption">
+                  Click the task again to deselect
                 </Typography>
               </Box>
             )}

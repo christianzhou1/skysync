@@ -1,5 +1,5 @@
-# Todo App Deployment Script for Windows
-Write-Host "Starting Todo App Deployment..." -ForegroundColor Green
+# SkySync Deployment Script for Windows
+Write-Host "Starting SkySync Deployment..." -ForegroundColor Green
 Write-Host ""
 
 # Check if Git Bash is available

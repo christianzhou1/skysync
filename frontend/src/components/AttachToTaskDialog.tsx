@@ -177,19 +177,21 @@ const AttachToTaskDialog: React.FC<AttachToTaskDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
-      PaperProps={{
-        sx: {
-          minHeight: "60vh",
-        },
+      sx={{
+        minHeight: "60vh",
+        p: 0,
+        m: -3,
       }}
     >
       <DialogTitle>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box display="flex" alignItems="center" gap={1}>
             <AttachFile color="primary" />
-            <Typography variant="h6">Attach Files to "{taskTitle}"</Typography>
+            <Typography sx={{ wordBreak: "break-word" }} variant="h6">
+              Attach Files to "{taskTitle}"
+            </Typography>
           </Box>
           <IconButton onClick={onClose} size="small">
             <Close />
@@ -198,7 +200,7 @@ const AttachToTaskDialog: React.FC<AttachToTaskDialogProps> = ({
       </DialogTitle>
 
       <DialogContent>
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ mb: 0 }}>
           <TextField
             fullWidth
             placeholder="Search attachments..."
@@ -229,19 +231,27 @@ const AttachToTaskDialog: React.FC<AttachToTaskDialogProps> = ({
 
         {!loading && filteredAttachments.length === 0 && (
           <Box textAlign="center" py={4}>
-            <Typography variant="body1" color="text.secondary">
+            <Typography
+              sx={{ wordBreak: "break-word" }}
+              variant="body1"
+              color="text.secondary"
+            >
               {searchTerm
                 ? "No attachments found matching your search."
                 : "No unlinked attachments available."}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 1, wordBreak: "break-word" }}
+            >
               Upload new files to attach them to this task.
             </Typography>
           </Box>
         )}
 
         {!loading && filteredAttachments.length > 0 && (
-          <List>
+          <List sx={{ p: 0, m: -2, mt: 0 }}>
             {filteredAttachments.map((attachment) => (
               <ListItem
                 key={attachment.id}
@@ -258,27 +268,35 @@ const AttachToTaskDialog: React.FC<AttachToTaskDialogProps> = ({
                 <ListItemText
                   primary={
                     <Box display="flex" alignItems="center" gap={1}>
-                      <Typography variant="h6" component="span">
+                      <Typography
+                        sx={{ wordBreak: "break-word" }}
+                        variant="h6"
+                        component="span"
+                      >
                         {getFileTypeIcon(
                           attachment.contentType,
                           attachment.fileName
                         )}
                       </Typography>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: 500, wordBreak: "break-word" }}
+                      >
                         {attachment.fileName || "Unknown file"}
                       </Typography>
+                    </Box>
+                  }
+                  secondary={
+                    <Box sx={{ mt: 0.5 }}>
                       {attachment.contentType && (
                         <Chip
                           label={attachment.contentType}
                           size="small"
                           variant="outlined"
                           color="primary"
+                          sx={{ mb: 0.5 }}
                         />
                       )}
-                    </Box>
-                  }
-                  secondary={
-                    <Box sx={{ mt: 0.5 }}>
                       <Typography variant="body2" color="text.secondary">
                         Size: {formatFileSize(attachment.sizeBytes)} • Created:{" "}
                         {formatDate(attachment.createdAt)}
@@ -308,6 +326,7 @@ const AttachToTaskDialog: React.FC<AttachToTaskDialogProps> = ({
                   disabled={attaching === attachment.id}
                   color="primary"
                   size="small"
+                  sx={{ color: "black", minWidth: 90 }}
                 >
                   {attaching === attachment.id ? "Attaching..." : "Attach"}
                 </Button>

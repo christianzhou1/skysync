@@ -1,7 +1,7 @@
 ---
-# The Todo Project
+# SkySync
 
-A modern **full-stack Todo application** built with **Spring Boot**, **React**, **PostgreSQL**, and **Docker Compose**.
+A modern **full-stack SkySync application** built with **Spring Boot**, **React**, **PostgreSQL**, and **Docker Compose**.
 Features user authentication, task management, file attachments, and a responsive web interface. Database schema is versioned using **Flyway**.
 ---
 
@@ -78,7 +78,7 @@ For development with hot reload:
 #### 1\. Start the database
 
 ```bash
-docker compose up -d todo-db
+docker compose up -d skysync-db
 ```
 
 This runs PostgreSQL in Docker. The container's `5432` port is mapped to host port `5433` to avoid conflicts.
@@ -321,7 +321,7 @@ docker image prune -f
 ## Project Structure
 
 ```
-todo/
+skysync/
 ├── src/main/java/com/todo/          # Backend source code
 │   ├── api/                         # API DTOs and mappers
 │   ├── config/                      # Configuration classes
@@ -439,12 +439,12 @@ Ensure you have these files ready:
 
 ```bash
 # Upload configuration files
-scp docker-compose.prod.yml your-user@your-vps-ip:/opt/todo-app/
-scp Dockerfile.jar your-user@your-vps-ip:/opt/todo-app/
-scp nginx.conf your-user@your-vps-ip:/opt/todo-app/
-scp .env.production your-user@your-vps-ip:/opt/todo-app/
-scp target/todo-0.0.1-SNAPSHOT.jar your-user@your-vps-ip:/opt/todo-app/
-scp -r frontend/dist your-user@your-vps-ip:/opt/todo-app/frontend/
+scp docker-compose.prod.yml your-user@your-vps-ip:/opt/skysync-app/
+scp Dockerfile.jar your-user@your-vps-ip:/opt/skysync-app/
+scp nginx.conf your-user@your-vps-ip:/opt/skysync-app/
+scp .env.production your-user@your-vps-ip:/opt/skysync-app/
+scp target/todo-0.0.1-SNAPSHOT.jar your-user@your-vps-ip:/opt/skysync-app/
+scp -r frontend/dist your-user@your-vps-ip:/opt/skysync-app/frontend/
 ```
 
 #### 4. Deploy on VPS
@@ -454,7 +454,7 @@ scp -r frontend/dist your-user@your-vps-ip:/opt/todo-app/frontend/
 ssh your-user@your-vps-ip
 
 # Navigate to app directory
-cd /opt/todo-app
+cd /opt/skysync-app
 
 # Fix file permissions
 chmod -R 755 frontend/dist/
@@ -470,7 +470,7 @@ Create `.env.production` with the following variables:
 
 ```bash
 # Database Configuration
-DATABASE_URL=jdbc:postgresql://todo-db:5432/todo_prod
+DATABASE_URL=jdbc:postgresql://skysync-db:5432/todo_prod
 DATABASE_USERNAME=todo_prod_user
 DATABASE_PASSWORD=YourStrongPassword123!
 
@@ -512,7 +512,7 @@ docker-compose -f docker-compose.prod.yml ps
 docker-compose -f docker-compose.prod.yml logs -f
 
 # View specific service logs
-docker-compose -f docker-compose.prod.yml logs -f todo-backend
+docker-compose -f docker-compose.prod.yml logs -f skysync-backend
 ```
 
 #### Update Deployment
@@ -532,10 +532,10 @@ docker-compose -f docker-compose.prod.yml --env-file .env.production up -d
 
 ```bash
 # Create database backup
-docker exec todo-db pg_dump -U todo_prod_user todo_prod > backup.sql
+docker exec skysync-db pg_dump -U todo_prod_user todo_prod > backup.sql
 
 # Restore from backup
-docker exec -i todo-db psql -U todo_prod_user todo_prod < backup.sql
+docker exec -i skysync-db psql -U todo_prod_user todo_prod < backup.sql
 ```
 
 ### Troubleshooting
@@ -546,7 +546,7 @@ docker exec -i todo-db psql -U todo_prod_user todo_prod < backup.sql
 
    ```bash
    # Fix file permissions
-   chmod -R 755 /opt/todo-app/frontend/dist/
+   chmod -R 755 /opt/skysync-app/frontend/dist/
    docker-compose -f docker-compose.prod.yml restart nginx
    ```
 
@@ -561,7 +561,7 @@ docker exec -i todo-db psql -U todo_prod_user todo_prod < backup.sql
 3. **Container Health Check Failed**
    ```bash
    # Check container logs
-   docker-compose -f docker-compose.prod.yml logs todo-db
+   docker-compose -f docker-compose.prod.yml logs skysync-db
    ```
 
 #### File Transfer Issues
@@ -570,10 +570,10 @@ If you need to download updated files from VPS:
 
 ```bash
 # Download configuration files
-scp your-user@your-vps-ip:/opt/todo-app/docker-compose.prod.yml ./
-scp your-user@your-vps-ip:/opt/todo-app/nginx.conf ./
-scp your-user@your-vps-ip:/opt/todo-app/.env.production ./
-scp your-user@your-vps-ip:/opt/todo-app/Dockerfile.jar ./
+scp your-user@your-vps-ip:/opt/skysync-app/docker-compose.prod.yml ./
+scp your-user@your-vps-ip:/opt/skysync-app/nginx.conf ./
+scp your-user@your-vps-ip:/opt/skysync-app/.env.production ./
+scp your-user@your-vps-ip:/opt/skysync-app/Dockerfile.jar ./
 ```
 
 ### Security Considerations

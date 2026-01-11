@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting Todo Application..."
+echo "Starting SkySync Application..."
 echo
 
 # Check if .env.production exists

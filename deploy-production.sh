@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Todo App Production Deployment Script
+# SkySync Production Deployment Script
 # This script deploys the entire application to VPS using JAR approach
 
 set -e
 
-echo "🚀 Starting Todo App Production Deployment..."
+echo "🚀 Starting SkySync Production Deployment..."
 
 # Load environment variables from .env.production
 if [ -f .env.production ]; then
@@ -20,7 +20,7 @@ fi
 
 # Configuration
 VPS_HOST="${VPS_HOST:-digital-ocean}"  # Use SSH config host alias
-APP_DIR="${APP_DIR:-/opt/todo-app}"
+APP_DIR="${APP_DIR:-/opt/skysync-app}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -229,7 +229,7 @@ ssh $SSH_OPTS $VPS_HOST << 'EOF'
     set -e
     
     # Navigate to app directory
-    cd /opt/todo-app
+    cd /opt/skysync-app
     
     # Install Docker if not installed
     if ! command -v docker &> /dev/null; then
@@ -238,7 +238,7 @@ ssh $SSH_OPTS $VPS_HOST << 'EOF'
         sudo sh get-docker.sh
         sudo systemctl enable docker
         sudo systemctl start docker
-        sudo usermod -aG docker todoapp
+        sudo usermod -aG docker skysyncapp
         echo "Docker installed. Please log out and back in for group changes to take effect."
         exit 1
     fi
@@ -278,7 +278,7 @@ EOF
 rm -rf deployment
 
 print_status "✅ Deployment completed successfully!"
-print_warning "Your Todo App is now running at: https://$VPS_IP"
+print_warning "Your SkySync App is now running at: https://$VPS_IP"
 print_warning "Frontend: https://$VPS_IP"
 print_warning "API: https://$VPS_IP/api"
 print_warning "API Docs: https://$VPS_IP/api/api-docs"

@@ -1,5 +1,5 @@
 @echo off
-echo Starting Todo App Deployment...
+echo Starting SkySync Deployment...
 echo.
 
 REM Check if Git Bash is available

@@ -5,8 +5,8 @@
 
 set -e
 
-NGINX_CONTAINER="todo-nginx"
-DOMAIN="${1:-todo.christianzhou.com}"
+NGINX_CONTAINER="skysync-nginx"
+DOMAIN="${1:-skysync.christianzhou.com}"
 
 echo "🔄 Checking certificate renewal for $DOMAIN..."
 

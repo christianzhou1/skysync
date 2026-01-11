@@ -5,7 +5,7 @@ additionalProperties:
   typescriptThreePlus: true
   supportsES6: true
   withInterfaces: true
-  npmName: @the-todo-project/api-client
+  npmName: @skysync/api-client
   npmVersion: 1.0.0
   modelPropertyNaming: camelCase
   enumPropertyNaming: UPPERCASE

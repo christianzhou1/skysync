@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Todo App Production Deployment Script
+# SkySync Production Deployment Script
 # This script deploys the entire application to VPS using JAR approach
 
 set -e
@@ -20,7 +20,7 @@ fi
 
 # Configuration
 VPS_HOST="${VPS_HOST:-digital-ocean}"  # Use SSH config host alias
-APP_DIR="${APP_DIR:-/opt/todo-app}"
+APP_DIR="${APP_DIR:-/opt/skysync-app}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -67,7 +67,7 @@ scp -r deployment/dist $VPS_HOST:$APP_DIR/frontend/
 
 
 print_status "✅ SCP build to VPS completed successfully!"
-print_warning "Your Todo App is now running at: https://$VPS_IP"
+print_warning "Your SkySync App is now running at: https://$VPS_IP"
 print_warning "Frontend: https://$VPS_IP"
 print_warning "API: https://$VPS_IP/api"
 print_warning "API Docs: https://$VPS_IP/api/api-docs"

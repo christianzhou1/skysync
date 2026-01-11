@@ -1,5 +1,5 @@
 @echo off
-echo Starting Todo App Deployment (PowerShell)...
+echo Starting SkySync Deployment (PowerShell)...
 echo.
 
 REM Check if PowerShell is available

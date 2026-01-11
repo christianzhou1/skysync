@@ -1,6 +1,6 @@
 # HTTPS SSL Certificate Setup Guide
 
-This guide will help you set up HTTPS SSL certificates using Let's Encrypt for your todo application.
+This guide will help you set up HTTPS SSL certificates using Let's Encrypt for your SkySync application.
 
 ## Prerequisites
 
@@ -41,7 +41,7 @@ SSL_ENABLED=true
 SSL_KEYSTORE=/app/certs/server.p12
 SSL_KEYSTORE_PASSWORD=your-keystore-password
 SSL_KEYSTORE_TYPE=PKCS12
-SSL_KEY_ALIAS=todo-ssl
+SSL_KEY_ALIAS=skysync-ssl
 ```
 
 ### 4. Set Up Automatic Renewal
@@ -76,7 +76,7 @@ If you prefer to generate certificates manually:
 ### 1. Stop Nginx Container
 
 ```bash
-docker stop todo-nginx
+docker stop skysync-nginx
 ```
 
 ### 2. Generate Certificate
@@ -106,7 +106,7 @@ sed -i 's/server_name _;/server_name yourdomain.com;/g' nginx.conf
 ### 5. Restart Services
 
 ```bash
-docker start todo-nginx
+docker start skysync-nginx
 ```
 
 ## Troubleshooting
@@ -125,10 +125,10 @@ docker start todo-nginx
 sudo certbot certificates
 
 # Test nginx configuration
-docker exec todo-nginx nginx -t
+docker exec skysync-nginx nginx -t
 
 # Check nginx logs
-docker logs todo-nginx
+docker logs skysync-nginx
 
 # Verify SSL
 openssl s_client -connect yourdomain.com:443 -servername yourdomain.com

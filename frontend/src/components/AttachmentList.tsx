@@ -409,6 +409,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                 borderRadius: 0.5,
                 border: "1px solid",
                 borderColor: "primary.main",
+                maxWidth: "50%",
               }}
             >
               <Clear sx={{ fontSize: 16 }} />
@@ -537,7 +538,12 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                     >
                       <Typography
                         variant={isMobile ? "body1" : "subtitle1"}
-                        sx={{ fontWeight: 500, flex: 1, minWidth: 0 }}
+                        sx={{
+                          fontWeight: 500,
+                          flex: 1,
+                          minWidth: 0,
+                          wordBreak: "break-word",
+                        }}
                       >
                         {attachment.fileName || "Unknown file"}
                       </Typography>

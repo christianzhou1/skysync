@@ -6,9 +6,9 @@
 set -e  # Exit on any error
 
 # Configuration
-DOMAIN="${1:-todo.christianzhou.com}"
+DOMAIN="${1:-skysync.christianzhou.com}"
 EMAIL="${2:-admin@christianzhou.com}"
-NGINX_CONTAINER="todo-nginx"
+NGINX_CONTAINER="skysync-nginx"
 
 echo "🔒 Setting up Let's Encrypt SSL for domain: $DOMAIN"
 echo "📧 Email: $EMAIL"

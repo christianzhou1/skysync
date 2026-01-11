@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Paper,
   Typography,
@@ -9,6 +9,11 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
+  List,
+  ListItem,
+  ListItemText,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 import {
   CheckCircle,
@@ -19,9 +24,16 @@ import {
   AttachFile,
   SubdirectoryArrowRight,
   Link,
+  Download,
+  Delete,
+  Visibility,
+  Refresh,
 } from "@mui/icons-material";
 import type { Task } from "./TaskList";
+import type { AttachmentInfo } from "../generated/api";
 import AttachToTaskDialog from "./AttachToTaskDialog";
+import { attachmentService, authService } from "../services";
+import AttachmentPreview from "./AttachmentPreview";
 
 interface TaskDetailProps {
   selectedTask: Task | null;
@@ -29,6 +41,12 @@ interface TaskDetailProps {
 
 const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
   const [attachDialogOpen, setAttachDialogOpen] = useState(false);
+  const [attachments, setAttachments] = useState<AttachmentInfo[]>([]);
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
+  const [attachmentsError, setAttachmentsError] = useState<string | null>(null);
+  const [previewAttachment, setPreviewAttachment] =
+    useState<AttachmentInfo | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
@@ -43,10 +61,124 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
   };
 
   const handleAttachmentAttached = () => {
-    // This could trigger a refresh of the task data or attachment list
-    // For now, we'll just close the dialog
+    // Refresh the attachment list when a new attachment is added
+    if (selectedTask) {
+      fetchTaskAttachments(selectedTask.id);
+    }
     setAttachDialogOpen(false);
   };
+
+  const fetchTaskAttachments = async (taskId: string) => {
+    setAttachmentsLoading(true);
+    setAttachmentsError(null);
+
+    try {
+      const userId = authService.getUserId();
+      if (!userId) {
+        setAttachmentsError("User not authenticated");
+        return;
+      }
+
+      const response = await attachmentService.getTaskAttachments(
+        taskId,
+        userId
+      );
+
+      if (response.code === 200 && response.data) {
+        setAttachments(response.data);
+      } else {
+        setAttachmentsError(response.msg);
+      }
+    } catch {
+      setAttachmentsError("Failed to fetch task attachments");
+    } finally {
+      setAttachmentsLoading(false);
+    }
+  };
+
+  const handleDownload = async (attachment: AttachmentInfo) => {
+    if (!attachment.id || !attachment.fileName) return;
+
+    const userId = authService.getUserId();
+    if (!userId) {
+      setAttachmentsError("User not authenticated");
+      return;
+    }
+
+    try {
+      const success = await attachmentService.downloadAndSaveFile(
+        attachment.id,
+        attachment.fileName,
+        userId
+      );
+
+      if (!success) {
+        setAttachmentsError("Failed to download file");
+      }
+    } catch {
+      setAttachmentsError("Failed to download file");
+    }
+  };
+
+  const handleDelete = async (attachment: AttachmentInfo) => {
+    if (!attachment.id) return;
+
+    const userId = authService.getUserId();
+    if (!userId) {
+      setAttachmentsError("User not authenticated");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${attachment.fileName}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await attachmentService.deleteAttachment(
+        attachment.id,
+        userId
+      );
+
+      if (response.code === 200) {
+        // Remove the attachment from the list
+        setAttachments((prev) =>
+          prev.filter((att) => att.id !== attachment.id)
+        );
+      } else {
+        setAttachmentsError(response.msg);
+      }
+    } catch {
+      setAttachmentsError("Failed to delete attachment");
+    }
+  };
+
+  const handlePreview = (attachment: AttachmentInfo) => {
+    setPreviewAttachment(attachment);
+    setPreviewOpen(true);
+  };
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return "Unknown size";
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
+  };
+
+  const formatAttachmentDate = (dateString?: string) => {
+    if (!dateString) return "Unknown date";
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  // Fetch attachments when a task is selected
+  useEffect(() => {
+    if (selectedTask) {
+      fetchTaskAttachments(selectedTask.id);
+    } else {
+      setAttachments([]);
+    }
+  }, [selectedTask]);
 
   if (!selectedTask) {
     return (
@@ -182,9 +314,29 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
 
         {/* Attach Files Section */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            Attachments
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 1,
+            }}
+          >
+            <Typography variant="subtitle2" color="text.secondary">
+              Attachments
+            </Typography>
+            <IconButton
+              onClick={() =>
+                selectedTask && fetchTaskAttachments(selectedTask.id)
+              }
+              title="Refresh Attachments"
+              size="small"
+              disabled={attachmentsLoading}
+            >
+              <Refresh />
+            </IconButton>
+          </Box>
+
           {isMobile ? (
             <IconButton
               onClick={() => setAttachDialogOpen(true)}
@@ -210,13 +362,161 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
               Attach Existing Files
             </Button>
           )}
+
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ fontSize: isMobile ? "0.8rem" : "0.75rem" }}
+            sx={{ fontSize: isMobile ? "0.8rem" : "0.75rem", mb: 1 }}
           >
             Link existing files from your attachment library to this task.
           </Typography>
+
+          {/* Attachments List */}
+          {attachmentsError && (
+            <Alert severity="error" sx={{ mb: 1 }}>
+              {attachmentsError}
+            </Alert>
+          )}
+
+          {attachmentsLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : attachments.length === 0 ? (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                fontStyle: "italic",
+                textAlign: "center",
+                py: 2,
+                fontSize: isMobile ? "0.8rem" : "0.75rem",
+              }}
+            >
+              No attachments linked to this task.
+            </Typography>
+          ) : (
+            <List
+              sx={{
+                maxHeight: 200,
+                overflow: "auto",
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+              }}
+            >
+              {attachments.map((attachment, index) => (
+                <React.Fragment key={attachment.id || index}>
+                  <ListItem
+                    sx={{
+                      px: 1,
+                      py: 0.5,
+                      flexDirection: isMobile ? "column" : "row",
+                      alignItems: isMobile ? "stretch" : "center",
+                      "&:hover": {
+                        backgroundColor: "action.hover",
+                        borderRadius: 0.5,
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <Typography
+                            variant={isMobile ? "body2" : "body2"}
+                            sx={{
+                              fontWeight: 500,
+                              flex: 1,
+                              minWidth: 0,
+                              wordBreak: "break-word",
+                            }}
+                          >
+                            {attachment.fileName || "Unknown file"}
+                          </Typography>
+                          {attachment.contentType && (
+                            <Chip
+                              label={attachment.contentType}
+                              size="small"
+                              variant="outlined"
+                              color="primary"
+                            />
+                          )}
+                        </Box>
+                      }
+                      secondary={
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ fontSize: isMobile ? "0.7rem" : "0.7rem" }}
+                        >
+                          Size: {formatFileSize(attachment.sizeBytes)} •
+                          Created: {formatAttachmentDate(attachment.createdAt)}
+                        </Typography>
+                      }
+                    />
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: isMobile ? "center" : "end",
+                        px: isMobile ? 0 : 1,
+                        py: isMobile ? 0.5 : 0,
+                        gap: isMobile ? 0.5 : 0.5,
+                      }}
+                    >
+                      <IconButton
+                        edge="end"
+                        onClick={() => handlePreview(attachment)}
+                        title="Preview file"
+                        color="info"
+                        size="small"
+                        sx={{
+                          minHeight: 28,
+                          minWidth: 28,
+                        }}
+                      >
+                        <Visibility fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        edge="end"
+                        onClick={() => handleDownload(attachment)}
+                        title="Download file"
+                        color="primary"
+                        size="small"
+                        sx={{
+                          minHeight: 28,
+                          minWidth: 28,
+                        }}
+                      >
+                        <Download fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        edge="end"
+                        onClick={() => handleDelete(attachment)}
+                        title="Delete file"
+                        color="error"
+                        size="small"
+                        sx={{
+                          minHeight: 28,
+                          minWidth: 28,
+                        }}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </ListItem>
+                  {index < attachments.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </List>
+          )}
         </Box>
 
         {/* Timestamps */}
@@ -257,6 +557,12 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ selectedTask }) => {
         taskId={selectedTask.id}
         taskTitle={selectedTask.title}
         onAttachmentAttached={handleAttachmentAttached}
+      />
+
+      <AttachmentPreview
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        attachment={previewAttachment}
       />
     </Paper>
   );

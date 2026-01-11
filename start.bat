@@ -1,5 +1,5 @@
 @echo off
-echo Starting Todo Application...
+echo Starting SkySync Application...
 echo.
 
 REM Check if .env.local exists

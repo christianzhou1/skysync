@@ -10,4 +10,4 @@ ssh user@your-server "cd /path/to/your/project && docker-compose exec nginx ngin
 
 echo "Nginx configuration reloaded successfully!"
 echo "Testing maintenance mode..."
-curl -I http://todo.christianzhou.com
+curl -I http://skysync.christianzhou.com

@@ -1,7 +1,7 @@
 services:
-  todo-db:
+  skysync-db:
     image: postgres:17
-    container_name: todo-db
+    container_name: skysync-db
     environment:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - todo-net
+      - skysync-net
     healthcheck:
       test:
         [
@@ -22,11 +22,11 @@ services:
       timeout: 3s
       retries: 10
 
-  todo-backend:
-    image: todo-backend
-    container_name: todo-backend
+  skysync-backend:
+    image: skysync-backend
+    container_name: skysync-backend
     environment:
-      DATABASE_URL: "jdbc:postgresql://todo-db:5432/todo_prod"
+      DATABASE_URL: "jdbc:postgresql://skysync-db:5432/todo_prod"
       DATABASE_USERNAME: "${DATABASE_USERNAME}"
       DATABASE_PASSWORD: "${DATABASE_PASSWORD}"
       JWT_SECRET: "${JWT_SECRET}"
@@ -37,16 +37,16 @@ services:
       S3_PREFIX: "${S3_PREFIX:-attachments}"
       STORAGE_TYPE: "${STORAGE_TYPE:-s3}"
     depends_on:
-      todo-db:
+      skysync-db:
         condition: service_healthy
     ports:
       - "${SERVER_PORT:-8080}:8080"
     networks:
-      - todo-net
+      - skysync-net
 
 volumes:
   postgres-data: {}
 
 networks:
-  todo-net:
+  skysync-net:
     external: true

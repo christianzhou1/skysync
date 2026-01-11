@@ -1,4 +1,4 @@
-# Todo App Production Deployment Script (PowerShell)
+# SkySync Production Deployment Script (PowerShell)
 # This script deploys the entire application to VPS using JAR approach
 
 param(
@@ -8,7 +8,7 @@ param(
 # Set error action preference
 $ErrorActionPreference = "Stop"
 
-Write-Host "Starting Todo App Production Deployment..." -ForegroundColor Green
+Write-Host "Starting SkySync Production Deployment..." -ForegroundColor Green
 
 # Function to print colored status messages
 function Write-Status {
@@ -50,7 +50,7 @@ if (Test-Path ".env.production") {
 
 # Configuration
 $VPS_HOST = if ($env:VPS_HOST) { $env:VPS_HOST } else { "digital-ocean" }
-$APP_DIR = if ($env:APP_DIR) { $env:APP_DIR } else { "/opt/todo-app" }
+$APP_DIR = if ($env:APP_DIR) { $env:APP_DIR } else { "/opt/skysync-app" }
 $SSL_ENABLED = if ($env:SSL_ENABLED) { $env:SSL_ENABLED } else { "true" }
 
 # Check if .env.production exists
@@ -127,7 +127,51 @@ Copy-Item ".env.production" "deployment/"
 Copy-Item "target/todo-0.0.1-SNAPSHOT.jar" "deployment/"
 Copy-Item -Recurse "frontend/dist" "deployment/"
 
-Write-Step "4. Uploading files to VPS..."
+Write-Step "4. Preparing VPS directory structure..."
+# Create directory structure on VPS before uploading
+# Get the current user from SSH session
+$prepScript = @'
+CURRENT_USER=$(whoami)
+if [ ! -d /opt/skysync-app ]; then
+    sudo mkdir -p /opt/skysync-app
+    sudo chown $CURRENT_USER:$CURRENT_USER /opt/skysync-app
+fi
+# Ensure directory is writable by current user
+sudo chown -R $CURRENT_USER:$CURRENT_USER /opt/skysync-app 2>/dev/null || true
+if [ ! -d /opt/skysync-app/frontend ]; then
+    mkdir -p /opt/skysync-app/frontend
+    chmod 755 /opt/skysync-app/frontend
+fi
+'@
+$prepScriptUnix = $prepScript -replace "`r`n", "`n" -replace "`r", "`n"
+$tempPrepScript = [System.IO.Path]::GetTempFileName()
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($tempPrepScript, $prepScriptUnix, $utf8NoBom)
+$prepScriptRemote = "/tmp/prep-$(Get-Random).sh"
+$scpPrepCmd = "scp"
+if ($SSH_OPTS) {
+    $scpPrepCmd += " " + ($SSH_OPTS -join " ")
+}
+$scpPrepCmd += " `"$tempPrepScript`" `"$VPS_HOST`:$prepScriptRemote`""
+Invoke-Expression $scpPrepCmd | Out-Null
+$sshPrepCmd = "ssh"
+if ($SSH_OPTS) {
+    $sshPrepCmd += " " + ($SSH_OPTS -join " ")
+}
+$sshPrepCmd += " $VPS_HOST `"chmod +x $prepScriptRemote && $prepScriptRemote && rm $prepScriptRemote`""
+$prepResult = Invoke-Expression $sshPrepCmd 2>&1
+Write-Status "Prep script output: $prepResult"
+# Verify ownership was set correctly
+$verifyOwnershipCmd = "ssh"
+if ($SSH_OPTS) {
+    $verifyOwnershipCmd += " " + ($SSH_OPTS -join " ")
+}
+$verifyOwnershipCmd += " $VPS_HOST `"ls -ld /opt/skysync-app`""
+Write-Status "Directory ownership:"
+Invoke-Expression $verifyOwnershipCmd
+Remove-Item $tempPrepScript -Force
+
+Write-Step "5. Uploading files to VPS..."
 Write-Status "VPS_HOST = $VPS_HOST"
 
 # SSH configuration
@@ -202,7 +246,8 @@ if ($SSH_OPTS) {
     $scpCmd += " " + ($SSH_OPTS -join " ")
 }
 
-# Upload files
+# Upload files to /tmp first (to avoid permission issues), then move with sudo
+$tmpDir = "/tmp/skysync-deploy-$(Get-Random)"
 $files = @(
     "deployment/docker-compose.prod.yml",
     "deployment/Dockerfile.jar", 
@@ -211,19 +256,101 @@ $files = @(
     "deployment/todo-0.0.1-SNAPSHOT.jar"
 )
 
+# Create temp directory on VPS
+$createTmpCmd = "ssh"
+if ($SSH_OPTS) {
+    $createTmpCmd += " " + ($SSH_OPTS -join " ")
+}
+$createTmpCmd += " $VPS_HOST `"mkdir -p $tmpDir`""
+Invoke-Expression $createTmpCmd | Out-Null
+
 foreach ($file in $files) {
-    $target = "$VPS_HOST`:$APP_DIR/$(Split-Path $file -Leaf)"
+    $target = "$VPS_HOST`:$tmpDir/$(Split-Path $file -Leaf)"
     $uploadCmd = "$scpCmd `"$file`" `"$target`""
     Write-Status "Uploading $(Split-Path $file -Leaf)..."
-    Invoke-Expression $uploadCmd
+    $result = Invoke-Expression $uploadCmd 2>&1
+    if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne $null) {
+        Write-Error "Failed to upload $(Split-Path $file -Leaf): $result"
+        exit 1
+    }
 }
 
-# Upload frontend dist directory
-$uploadCmd = "$scpCmd -r `"deployment/dist`" `"$VPS_HOST`:$APP_DIR/frontend/`""
+# Upload frontend dist directory to temp location
+$uploadCmd = "$scpCmd -r `"deployment/dist`" `"$VPS_HOST`:$tmpDir/frontend-dist`""
 Write-Status "Uploading frontend files..."
 Invoke-Expression $uploadCmd
 
-Write-Step "5. Deploying on VPS..."
+# Upload SSL certificates if they exist in deployment folder
+if (Test-Path "deployment/certs") {
+    Write-Status "Uploading SSL certificates..."
+    $uploadCmd = "$scpCmd -r `"deployment/certs`" `"$VPS_HOST`:$tmpDir/certs`""
+    Invoke-Expression $uploadCmd
+} else {
+    Write-Warning "No certs directory in deployment folder - SSL certificates not uploaded"
+}
+
+# Move files from /tmp to final location with sudo
+Write-Status "Moving files to final location..."
+Write-Status "APP_DIR is set to: $APP_DIR"
+# Use PowerShell variable expansion - replace $APP_DIR in the script string
+$moveScriptTemplate = @'
+echo "Checking files in TMP_DIR..."
+ls -la TMP_DIR/ || echo "Temp directory not found or empty"
+echo "Creating app directory at APP_DIR..."
+sudo mkdir -p APP_DIR
+sudo mkdir -p APP_DIR/frontend
+echo "Moving files..."
+sudo mv TMP_DIR/* APP_DIR/ 2>&1
+echo "Moving hidden files..."
+for file in TMP_DIR/.*; do
+    if [ -f "$file" ]; then
+        sudo mv "$file" APP_DIR/ 2>&1
+    fi
+done
+echo "Moving frontend files from frontend-dist..."
+if [ -d APP_DIR/frontend-dist ]; then
+    sudo mkdir -p APP_DIR/frontend/dist
+    sudo mv APP_DIR/frontend-dist/* APP_DIR/frontend/dist/ 2>&1
+    sudo rmdir APP_DIR/frontend-dist 2>/dev/null || true
+fi
+echo "Moving SSL certificates if they exist..."
+if [ -d APP_DIR/certs ]; then
+    sudo mkdir -p APP_DIR/certs
+    sudo mv TMP_DIR/certs/* APP_DIR/certs/ 2>&1 || true
+    sudo chmod 644 APP_DIR/certs/server.crt 2>/dev/null || true
+    sudo chmod 600 APP_DIR/certs/server.key 2>/dev/null || true
+fi
+echo "Setting ownership..."
+sudo chown -R $(whoami):$(whoami) APP_DIR
+echo "Verifying files in APP_DIR..."
+ls -la APP_DIR/
+echo "Verifying .env.production exists..."
+ls -la APP_DIR/.env.production || echo "WARNING: .env.production not found"
+rm -rf TMP_DIR
+'@
+$moveScript = $moveScriptTemplate -replace 'APP_DIR', $APP_DIR -replace 'TMP_DIR', $tmpDir
+# Convert to Unix line endings
+$moveScriptUnix = $moveScript -replace "`r`n", "`n" -replace "`r", "`n"
+$tempMoveScript = [System.IO.Path]::GetTempFileName()
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($tempMoveScript, $moveScriptUnix, $utf8NoBom)
+$moveScriptRemote = "/tmp/move-$(Get-Random).sh"
+$scpMoveCmd = "scp"
+if ($SSH_OPTS) {
+    $scpMoveCmd += " " + ($SSH_OPTS -join " ")
+}
+$scpMoveCmd += " `"$tempMoveScript`" `"$VPS_HOST`:$moveScriptRemote`""
+Invoke-Expression $scpMoveCmd | Out-Null
+$sshMoveCmd = "ssh"
+if ($SSH_OPTS) {
+    $sshMoveCmd += " " + ($SSH_OPTS -join " ")
+}
+$sshMoveCmd += " $VPS_HOST `"chmod +x $moveScriptRemote && $moveScriptRemote && rm $moveScriptRemote`""
+$moveResult = Invoke-Expression $sshMoveCmd 2>&1
+Write-Status "Move script output: $moveResult"
+Remove-Item $tempMoveScript -Force
+
+Write-Step "6. Deploying on VPS..."
 $sshCmd = "ssh"
 if ($SSH_OPTS) {
     $sshCmd += " " + ($SSH_OPTS -join " ")
@@ -233,7 +360,52 @@ $deployScript = @'
 set -e
 
 # Navigate to app directory
-cd /opt/todo-app
+cd /opt/skysync-app || {
+    echo "ERROR: Cannot access /opt/skysync-app directory!"
+    exit 1
+}
+
+# Move frontend-dist to frontend/dist if it exists
+if [ -d frontend-dist ]; then
+    echo "Moving frontend-dist contents to frontend/dist..."
+    sudo mkdir -p frontend/dist
+    sudo mv frontend-dist/* frontend/dist/ 2>/dev/null || true
+    sudo rmdir frontend-dist 2>/dev/null || true
+    sudo chown -R $(whoami):$(whoami) frontend/
+fi
+# Also check if frontend files are directly in frontend/ and move to frontend/dist/
+if [ -d frontend ] && [ ! -d frontend/dist ] && [ "$(ls -A frontend/ 2>/dev/null)" ]; then
+    echo "Moving frontend files to frontend/dist..."
+    sudo mkdir -p frontend/dist
+    sudo mv frontend/* frontend/dist/ 2>/dev/null || true
+    sudo chown -R $(whoami):$(whoami) frontend/
+fi
+
+# List files to debug
+echo "Current directory: $(pwd)"
+echo "Files in directory:"
+ls -la
+
+# Verify critical files are present
+echo "Verifying uploaded files..."
+if [ ! -f docker-compose.prod.yml ]; then
+    echo "ERROR: docker-compose.prod.yml not found in $(pwd)!"
+    echo "Files present:"
+    ls -la
+    exit 1
+fi
+if [ ! -f .env.production ]; then
+    echo "ERROR: .env.production not found in $(pwd)!"
+    echo "Checking for hidden files:"
+    ls -la | grep env
+    exit 1
+fi
+if [ ! -d frontend/dist ]; then
+    echo "WARNING: frontend/dist directory not found, checking frontend directory..."
+    ls -la frontend/ || echo "frontend directory does not exist"
+    # Don't exit, just warn - might be uploaded differently
+fi
+echo "All critical files verified successfully."
 
 # Install Docker if not installed
 if ! command -v docker &> /dev/null; then
@@ -242,7 +414,7 @@ if ! command -v docker &> /dev/null; then
     sudo sh get-docker.sh
     sudo systemctl enable docker
     sudo systemctl start docker
-    sudo usermod -aG docker todoapp
+    sudo usermod -aG docker skysyncapp
     echo "Docker installed. Please log out and back in for group changes to take effect."
     exit 1
 fi
@@ -254,8 +426,15 @@ if ! command -v docker-compose &> /dev/null; then
     sudo chmod +x /usr/local/bin/docker-compose
 fi
 
-# Stop existing containers and clean up
+# Stop existing containers and clean up (more aggressively)
 docker-compose -f docker-compose.prod.yml down || true
+# Also stop any containers that might be using the ports
+docker stop $(docker ps -q --filter "publish=5432") 2>/dev/null || true
+docker stop $(docker ps -q --filter "publish=8080") 2>/dev/null || true
+docker stop $(docker ps -q --filter "publish=80") 2>/dev/null || true
+docker stop $(docker ps -q --filter "publish=443") 2>/dev/null || true
+# Remove any stopped containers
+docker container prune -f || true
 
 # Clean up old images to free space
 docker image prune -f || true
@@ -289,14 +468,37 @@ echo "Your app should be available at: https://$(curl -s ifconfig.me)"
 # Execute deployment script on VPS
 # Convert Windows line endings to Unix line endings
 $deployScriptUnix = $deployScript -replace "`r`n", "`n" -replace "`r", "`n"
-$fullSshCmd = "$sshCmd $VPS_HOST '$deployScriptUnix'"
-Invoke-Expression $fullSshCmd
+
+# Write script to temporary file (UTF-8 without BOM)
+$tempScript = [System.IO.Path]::GetTempFileName()
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($tempScript, $deployScriptUnix, $utf8NoBom)
+
+# Upload script to VPS
+$tempScriptRemote = "/tmp/deploy-$(Get-Random).sh"
+$scpScriptCmd = "scp"
+if ($SSH_OPTS) {
+    $scpScriptCmd += " " + ($SSH_OPTS -join " ")
+}
+$scpScriptCmd += " `"$tempScript`" `"$VPS_HOST`:$tempScriptRemote`""
+Invoke-Expression $scpScriptCmd
+
+# Execute script on VPS
+$sshExecCmd = "ssh"
+if ($SSH_OPTS) {
+    $sshExecCmd += " " + ($SSH_OPTS -join " ")
+}
+$sshExecCmd += " $VPS_HOST `"chmod +x $tempScriptRemote && $tempScriptRemote && rm $tempScriptRemote`""
+Invoke-Expression $sshExecCmd
+
+# Clean up local temp file
+Remove-Item $tempScript -Force
 
 # Cleanup
 Remove-Item -Recurse -Force "deployment"
 
 Write-Status "✅ Deployment completed successfully!"
-Write-Warning "Your Todo App is now running at: https://$($env:VPS_IP)"
+Write-Warning "Your SkySync App is now running at: https://$($env:VPS_IP)"
 Write-Warning "Frontend: https://$($env:VPS_IP)"
 Write-Warning "API: https://$($env:VPS_IP)/api"
 Write-Warning "API Docs: https://$($env:VPS_IP)/api/api-docs"

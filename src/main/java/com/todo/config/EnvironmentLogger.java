@@ -86,7 +86,7 @@ public class EnvironmentLogger implements CommandLineRunner {
         
         // Check if we're using Docker Compose environment variables
         String databaseUrl = environment.getProperty("DATABASE_URL");
-        if (databaseUrl != null && databaseUrl.contains("todo-db:5432")) {
+        if (databaseUrl != null && databaseUrl.contains("skysync-db:5432")) {
             return "Docker Compose environment variables";
         }
         

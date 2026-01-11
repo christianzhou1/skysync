@@ -1,6 +1,6 @@
-# OpenAPI Integration Guide for Todo Backend Project
+# OpenAPI Integration Guide for SkySync Backend Project
 
-This guide explains how to use the OpenAPI specification generation and frontend integration that has been set up for your todo backend project.
+This guide explains how to use the OpenAPI specification generation and frontend integration that has been set up for your SkySync backend project.
 
 ## Backend Setup (Completed)
 

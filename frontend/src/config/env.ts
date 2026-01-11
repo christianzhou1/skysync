@@ -9,7 +9,7 @@ const getEnvConfig = (): EnvConfig => {
   // In production, use HTTPS API endpoint
   const isProduction = import.meta.env.MODE === "production";
   const defaultApiUrl = isProduction
-    ? "https://todo.christianzhou.com/api"
+    ? "https://skysync.christianzhou.com/api"
     : "http://localhost:8080/api";
 
   return {

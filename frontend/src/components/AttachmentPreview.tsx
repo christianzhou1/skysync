@@ -184,7 +184,12 @@ const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
     >
       <AppBar position="static" sx={{ backgroundColor: "background.paper" }}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            py={0.5}
+            sx={{ flexGrow: 1, wordBreak: "break-word" }}
+          >
             {attachment?.fileName || "Preview"}
           </Typography>
 

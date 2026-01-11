@@ -1,6 +1,6 @@
-# Running the Todo Application
+# Running the SkySync Application
 
-This guide explains how to run the Todo application using Docker Compose with the standardized `.env.production` configuration. Both local development and production use the same Docker Compose file and identical commands.
+This guide explains how to run the SkySync application using Docker Compose with the standardized `.env.production` configuration. Both local development and production use the same Docker Compose file and identical commands.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ Run the application locally using Docker Compose.
 
 ### Configuration:
 
-- Database: `todo-db:5432` (internal Docker network)
+- Database: `skysync-db:5432` (internal Docker network)
 - Application: Docker container
 - Environment: Uses `.env.production` file
 
@@ -51,7 +51,7 @@ Deploy to your VPS server using the same Docker Compose approach.
 
 ### Configuration:
 
-- Database: `todo-db:5432` (internal Docker network)
+- Database: `skysync-db:5432` (internal Docker network)
 - Application: Docker container
 - Environment: Uses `.env.production` file
 
@@ -59,7 +59,7 @@ Deploy to your VPS server using the same Docker Compose approach.
 
 Both local and production environments use the same Docker network configuration:
 
-- Database: `todo-db:5432` (internal Docker network)
+- Database: `skysync-db:5432` (internal Docker network)
 - Consistent across all environments
 
 ## Environment Variables
@@ -68,7 +68,7 @@ All scenarios use the same `.env.production` file with these key variables:
 
 ```bash
 # Database
-DATABASE_URL=jdbc:postgresql://todo-db:5432/todo_prod
+DATABASE_URL=jdbc:postgresql://skysync-db:5432/todo_prod
 DATABASE_USERNAME=todo_prod_user
 DATABASE_PASSWORD=YourStrongPassword123!
 

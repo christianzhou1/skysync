@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Setup Traffic Monitoring on VPS
-# This script sets up comprehensive traffic monitoring for your Todo app
+# This script sets up comprehensive traffic monitoring for your SkySync app
 
 set -e
 
@@ -182,3 +182,6 @@ main() {
 
 # Run main function
 main "$@"
+
+
+

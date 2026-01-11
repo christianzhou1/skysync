@@ -33,10 +33,10 @@ if (Test-Path ".env.production") {
         
         if ($line -match "^DATABASE_URL=(.*)$") {
             $url = $matches[1].Trim()
-            if ($url -like "*todo-db:5432*") {
+            if ($url -like "*skysync-db:5432*") {
                 Write-Host "✅ DATABASE_URL is correct for Docker: $url" -ForegroundColor Green
             } else {
-                $issues += "⚠️  DATABASE_URL should be 'jdbc:postgresql://todo-db:5432/todo_prod'"
+                $issues += "⚠️  DATABASE_URL should be 'jdbc:postgresql://skysync-db:5432/todo_prod'"
             }
         }
     }
@@ -51,7 +51,7 @@ if (Test-Path ".env.production") {
         Write-Host "To fix these issues, update your .env.production file with the correct values:" -ForegroundColor Yellow
         Write-Host "  DATABASE_USERNAME=todo_prod_user" -ForegroundColor Cyan
         Write-Host "  DATABASE_PASSWORD=YourStrongPassword123!" -ForegroundColor Cyan
-        Write-Host "  DATABASE_URL=jdbc:postgresql://todo-db:5432/todo_prod" -ForegroundColor Cyan
+        Write-Host "  DATABASE_URL=jdbc:postgresql://skysync-db:5432/todo_prod" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "Then run:" -ForegroundColor Yellow
         Write-Host "  docker-compose -f docker-compose.prod.yml --env-file .env.production up" -ForegroundColor Cyan

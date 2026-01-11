@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Traffic Monitoring Script for Todo App VPS
+# Traffic Monitoring Script for SkySync App VPS
 # This script provides various ways to monitor traffic hitting your server
 
-echo "=== Todo App Traffic Monitor ==="
+echo "=== SkySync App Traffic Monitor ==="
 echo "Server IP: $(curl -s ifconfig.me)"
 echo "Current Time: $(date)"
 echo ""
@@ -151,3 +151,6 @@ case "$1" in
         echo "  $0 ips       # Top IP addresses"
         ;;
 esac
+
+
+

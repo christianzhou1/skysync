@@ -1,16 +1,18 @@
 services:
   # PostgreSQL Database
-  todo-db:
+  skysync-db:
     image: postgres:17-alpine
-    container_name: todo-db
+    container_name: skysync-db
     environment:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: todo_prod
+    ports:
+      - "5432:5432"  # Expose database port for local development
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - todo-net
+      - skysync-net
     restart: unless-stopped
     # Healthcheck
     healthcheck:
@@ -35,11 +37,11 @@ services:
       -c default_statistics_target=100
 
   # Spring Boot Backend
-  todo-backend:
+  skysync-backend:
     build:
       context: .
       dockerfile: Dockerfile.jar
-    container_name: todo-backend
+    container_name: skysync-backend
     environment:
       # Database Configuration (REQUIRED - no fallbacks for security)
       DATABASE_URL: "${DATABASE_URL}"
@@ -77,12 +79,12 @@ services:
       # JVM Memory optimization for 1GB VPS
       JAVA_OPTS: "-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseStringDeduplication"
     depends_on:
-      todo-db:
+      skysync-db:
         condition: service_healthy
     ports:
       - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
     networks:
-      - todo-net
+      - skysync-net
     restart: unless-stopped
     # Memory optimization
     deploy:
@@ -95,7 +97,7 @@ services:
   # Nginx Reverse Proxy (for frontend and backend)
   nginx:
     image: nginx:alpine
-    container_name: todo-nginx
+    container_name: skysync-nginx
     ports:
       - "80:80"
       - "443:443" # Only used when SSL is enabled
@@ -104,9 +106,9 @@ services:
       - ./frontend/dist:/usr/share/nginx/html:ro
       - ./certs:/etc/nginx/ssl:ro # Only used when SSL is enabled
     depends_on:
-      - todo-backend
+      - skysync-backend
     networks:
-      - todo-net
+      - skysync-net
     restart: unless-stopped
     # Minimal memory usage
     deploy:
@@ -120,5 +122,5 @@ volumes:
   postgres-data:
 
 networks:
-  todo-net:
+  skysync-net:
     driver: bridge

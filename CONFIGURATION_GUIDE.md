@@ -1,6 +1,6 @@
 # Configuration Guide
 
-This document explains the standardized configuration setup for the Todo application, which now uses a single `.env.production` file for both local development and production deployment.
+This document explains the standardized configuration setup for the SkySync application, which now uses a single `.env.production` file for both local development and production deployment.
 
 ## Environment Variables
 
@@ -10,7 +10,7 @@ All configuration is now centralized in the `.env.production` file. Copy `env.ex
 
 #### Database Configuration (REQUIRED)
 
-- `DATABASE_URL`: PostgreSQL connection URL (e.g., `jdbc:postgresql://todo-db:5432/todo_prod`)
+- `DATABASE_URL`: PostgreSQL connection URL (e.g., `jdbc:postgresql://skysync-db:5432/todo_prod`)
 - `DATABASE_USERNAME`: Database username (e.g., `todo_prod_user`)
 - `DATABASE_PASSWORD`: Database password (e.g., `YourStrongPassword123!`)
 
@@ -44,7 +44,7 @@ All configuration is now centralized in the `.env.production` file. Copy `env.ex
 - `VPS_USER`: VPS username for deployment
 - `VPS_IP`: VPS IP address
 - `VPS_HOST`: SSH config host alias (default: `digital-ocean`)
-- `APP_DIR`: Application directory on VPS (default: `/opt/todo-app`)
+- `APP_DIR`: Application directory on VPS (default: `/opt/skysync-app`)
 
 #### Frontend Configuration
 
