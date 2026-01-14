@@ -24,5 +24,5 @@ dist-ssr
 *.sw?
 
 # Generated API files
-src/generated/
-api-spec.json
+# src/generated/
+# api-spec.json

@@ -35,4 +35,4 @@ jobs:
         run: |
           npm ci
           npm run lint -- --fix || true
-          npm run build
+          npm run build:ci

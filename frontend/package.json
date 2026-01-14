@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npm run generate:api && vite",
     "build": "npm run generate:api && tsc -b && vite build",
+    "build:ci": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate:api": "openapi-generator-cli generate -i http://localhost:8080/api/api-docs -g typescript-axios -o src/generated/api --additional-properties=typescriptThreePlus=true,supportsES6=true,withInterfaces=true,npmName=@skysync/api-client,npmVersion=1.0.0",
