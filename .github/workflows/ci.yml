@@ -23,7 +23,11 @@ jobs:
       - name: Run backend tests
         run: |
           echo "::group::Backend Tests"
-          mvn clean test -q -Dorg.slf4j.simpleLogger.defaultLogLevel=warn
+          mvn clean test -q --batch-mode \
+            -Dorg.slf4j.simpleLogger.defaultLogLevel=warn \
+            -Dspring.boot.autoconfigure.condition.report.enabled=false \
+            -Dspring.main.banner-mode=off \
+            -Dmaven.wagon.http.pool=false
           echo "::endgroup::"
 
       - name: Build backend package

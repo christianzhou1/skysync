@@ -213,6 +213,10 @@
 					<reportFormat>brief</reportFormat>
 					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 					<trimStackTrace>true</trimStackTrace>
+					<systemPropertyVariables>
+						<spring.boot.autoconfigure.condition.report.enabled>false</spring.boot.autoconfigure.condition.report.enabled>
+						<spring.main.banner-mode>off</spring.main.banner-mode>
+					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -1,6 +1,7 @@
 package com.todo.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.StandardEnvironment;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 @Configuration
+@Profile("!test")
 public class EnvironmentConfig {
 
     private final Environment environment;
