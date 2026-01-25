@@ -21,10 +21,13 @@ jobs:
           cache: "maven"
 
       - name: Run backend tests
-        run: mvn clean test
+        run: |
+          echo "::group::Backend Tests"
+          mvn clean test -q -Dorg.slf4j.simpleLogger.defaultLogLevel=warn
+          echo "::endgroup::"
 
       - name: Build backend package
-        run: mvn package -DskipTests
+        run: mvn package -DskipTests -q
 
       - name: Upload test results
         if: always()
@@ -53,7 +56,10 @@ jobs:
 
       - name: Run unit tests
         working-directory: ./frontend
-        run: npm run test:run
+        run: |
+          echo "::group::Frontend Unit Tests"
+          npm run test:run -- --reporter=verbose --no-coverage
+          echo "::endgroup::"
 
       - name: Upload test results
         if: always()
@@ -87,7 +93,10 @@ jobs:
 
       - name: Run E2E tests
         working-directory: ./frontend
-        run: npm run test:e2e
+        run: |
+          echo "::group::Frontend E2E Tests"
+          npm run test:e2e -- --reporter=list
+          echo "::endgroup::"
 
       - name: Upload Playwright test results
         if: always()
